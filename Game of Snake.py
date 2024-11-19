@@ -1,52 +1,49 @@
 # TO DO LIST:
-#      - Fix food spawning underneath snake
-#      - Add running score visual while playing
+#      - Add feature to start the game paused until interacted with
 #      - Add difficulty slider
-#      - Add music, application icon, application name
 #      - Add grid pattern to board
 #      - Add an endless mode option
-#      - Make code dynamic to different window settings, and gamestate matrix sizes
+#      - Add title and gameover screens
+#      - Add restart mechanic instead of exiting on a loss
+#      - Make score display nicer
 
-
-# Import required libraries
 import pygame
 import random
 import sys
+import time
 
-# Initialize pygame requirements
-pygame.init()
-screen = pygame.display.set_mode((600, 600))
-
-# Cell object used to track the state of each traversable space
 class Cell:
     def __repr__(self):
         return f"Cell {self.x}, {self.y}"
-      
+
     def __init__(self, x, y):
         self.x = x
         self.y = y
         self.is_empty = True
         self.is_food = False
 
-    def draw(self, screen, rows, cols):
-        WIDTH = pygame.display.get_window_size()[0] // rows
-        rect = (self.x * WIDTH, self.y * WIDTH, WIDTH, WIDTH)
-        pygame.draw.rect(screen, "white", pygame.Rect(rect))
-      
     def update_cell_state(self, snake):
         if [self.x, self.y] in snake.body:
             self.is_empty = False
         else:
             self.is_empty = True
 
+    def draw(self, screen, rows, cols):
+        WIDTH = pygame.display.get_window_size()[0] // rows
+        rect = (self.x * WIDTH, self.y * WIDTH, WIDTH, WIDTH)
+        pygame.draw.rect(screen, "white", pygame.Rect(rect))
+
 class Snake:
-    def __init__(self, screen, rows, cols):
+    def __init__(self, screen, gamestates):
+        self.gamestates = gamestates
         self.screen = screen
-        self.rows, self.cols = rows, cols
-        self.head_x, self.head_y = cols // 2, rows // 2
+        self.rows, self.cols = len(gamestates), len(gamestates[0])
+        self.head_x, self.head_y = self.cols // 2, self.rows // 2
         self.body = [[self.head_x, self.head_y]]
-        self.length = 1
+        self.length = 0
         self.move = [-1,0]
+        self.grow_sound = pygame.mixer.Sound("grow.wav")
+        self.lose_sound = pygame.mixer.Sound("game_over.wav")
 
     def draws(self):
         width = pygame.display.get_window_size()[0] // self.rows
@@ -71,53 +68,84 @@ class Snake:
         self.head_x, self.head_y = self.body[0]
 
     def grow(self):
+        self.grow_sound.play()
         tail_x, tail_y = self.body[-1]
         new_tail_x = tail_x + (-self.move[0])
         new_tail_y = tail_y + (-self.move[1])
         self.body.append([new_tail_x, new_tail_y])
         self.length += 1
 
-    def check_collisions(self, gamestates):
-        exit_message = f"YOU LOSE! Score: {self.length}"
-        if self.head_x < 0 or self.head_y < 0:
-            sys.exit(exit_message)
-        elif self.head_x > self.cols - 1 or self.head_y > self.rows - 1:
-            sys.exit(exit_message)
+    def check_collisions(self):
+        # Checks for collision with walls ----------------------------------------------:
+        if not 0 <= self.head_x <= self.cols -1 or not 0 <= self.head_y <= self.rows -1:
+            self.lose_sound.play()
+            time.sleep(2)
+            sys.exit(f"GAME OVER: Crashed into wall! Final Score: {self.length}")
+
+        # Checks for collision with self -----------------------------------------------:
         elif [self.head_x, self.head_y] in self.body[1:]:
-            sys.exit(exit_message)
+            self.lose_sound.play()
+            time.sleep(2)
+            sys.exit(f"GAME OVER: Crashed into self! Final Score: {self.length}")
+
+    def display_score(self):
+        my_font = pygame.font.SysFont('Comic Sans MS', 30)
+        text_surface = my_font.render(f"{self.length}", False, "red")
+        self.screen.blit(text_surface, dest=(0, 0))
+
+    def update_gamestates(self):
+        for row in self.gamestates:
+            for cell in row:
+                if [cell.x, cell.y] in self.body:
+                    self.gamestates[cell.y][cell.x].is_empty = False
+                else:
+                    self.gamestates[cell.y][cell.x].is_empty = True
 
 class Food:
     def __init__(self, gamestates, screen):
-        self.gamestates = gamestates
         self.screen = screen
-        self.x = random.randint(0, len(self.gamestates[0]) - 1)
-        self.y = random.randint(0, len(self.gamestates) - 1)
-        self.width = screen.get_width() / len(self.gamestates[0])
+        self.x = random.randint(0, len(gamestates[0]) - 1)
+        self.y = random.randint(0, len(gamestates) - 1)
+        self.width = screen.get_width() / len(gamestates[0])
 
-    def spawn_food(self):
+    def spawn_food(self, snake):
         food_width = 10
-        target_position =  self.gamestates[self.y][self.x]
+        target_position =  snake.gamestates[self.y][self.x]
         if target_position.is_empty:
             target_position.is_food = True
-        rect_x = target_position.x * self.width + (self.width - food_width) / 2
-        rect_y = target_position.y * self.width + (self.width - food_width) / 2
-        food_rect = rect_x, rect_y, food_width, food_width
-        pygame.draw.rect(self.screen, "green", pygame.Rect(food_rect))
+            rect_x = target_position.x * self.width + (self.width - food_width) / 2
+            rect_y = target_position.y * self.width + (self.width - food_width) / 2
+            food_rect = rect_x, rect_y, food_width, food_width
+            pygame.draw.rect(self.screen, "green", pygame.Rect(food_rect))
+        else:
+            self.x = random.randint(0, len(snake.gamestates[0]) - 1)
+            self.y = random.randint(0, len(snake.gamestates) - 1)
 
     def eat_food(self, snake):
         curr_position = [snake.head_x, snake.head_y]
         next_position = [snake.head_x + snake.move[0], snake.head_y + snake.move[1]]
-
         if next_position == [self.x, self.y] or curr_position == [self.x, self.y]:
-            self.x = random.randint(0, len(self.gamestates[0]) - 1)
-            self.y = random.randint(0, len(self.gamestates) - 1)
+            self.x = random.randint(0, len(snake.gamestates[0]) - 1)
+            self.y = random.randint(0, len(snake.gamestates) - 1)
             snake.grow()
 
-def initialize_gamestates(rows, cols):
+def initialize_pygame(width, height):
+    pygame.init()
+
+    # Visual Initializations -------------------------------------------------------
+    screen = pygame.display.set_mode((width, height))
+    pygame_icon = pygame.image.load('snake.png')
+    pygame.display.set_icon(pygame_icon)
+    pygame.display.set_caption("Classic game of snake brought to you by SavCodes!")
+
+    # Audio Initializations --------------------------------------------------------
+    pygame.mixer.music.load("background_music.mp3")
+    pygame.mixer.music.play(-1)
+
+    return screen
+
+def initialize_gamestates(screen, rows, cols):
     gamestates = [[Cell(i,j) for i in range(rows)] for j in range(cols)]
-    for row in gamestates:
-        for cell in row:
-            cell.draw(screen, rows, cols)
     return gamestates
 
 def event_checker(snake):
@@ -127,24 +155,33 @@ def event_checker(snake):
         elif event.type == pygame.KEYDOWN:
             snake.get_move(event)
 
-def main(screen, ROWS, COLS):
+def main(ROWS, COLS):
+    # Initialize Required Objects Start --------------------------------------------
+    screen = initialize_pygame(600, 600)
+    gamestates = initialize_gamestates(screen, ROWS, COLS)
     clock = pygame.time.Clock()
-    gamestates = initialize_gamestates(ROWS, COLS)
-    snake = Snake(screen, ROWS, COLS)
+    snake = Snake(screen, gamestates)
     food = Food(gamestates, screen)
+    # Initialize Required Objects End ---------------------------------------------
     while True:
-        screen.fill("white")
+        # Logic Handling Start ----------------------------------------------------
+        snake.update_gamestates()
         food.eat_food(snake)
         event_checker(snake)
         snake.moves()
-        food.spawn_food()
+        snake.check_collisions()
+        # Logic Handling End ------------------------------------------------------
+
+        # Display Handling Start --------------------------------------------------
+        screen.fill("white")
+        food.spawn_food(snake)
         snake.draws()
-        snake.check_collisions(gamestates)
+        snake.display_score()
         pygame.display.flip()
-        clock.tick(6)
-        for row in gamestates:
-            for cell in row:
-                cell.update_cell_state(snake)
+        clock.tick(10)
+        # Display Handling End ----------------------------------------------------
 
 if __name__ == "__main__":
-    main(screen, 10, 10)
+    main(20, 20)
+
+
