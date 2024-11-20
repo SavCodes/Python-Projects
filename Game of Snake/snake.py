@@ -256,17 +256,31 @@ def event_checker(snake, is_paused, pause_menu):
     pygame_widgets.update(events)
     return is_paused
 
-def initialize_slider(screen):
+def initialize_difficulty_slider(screen):
     width, height = pygame.display.get_window_size()
     txt_scl = 50
-    slider = Slider(screen, width // 4, height - txt_scl, width//2, 20, min=1, max=3, step=1)
-    output = TextBox(screen, width // 2 - txt_scl // 2 , height - txt_scl // 2, txt_scl + 5, txt_scl//2, fontSize=10)
+    slider = Slider(screen, width // 4, int(height * 0.88), width//2, 20, min=1, max=3, step=1)
+    #output = TextBox(screen, width // 2 - txt_scl // 2 , height - txt_scl // 2, txt_scl + 5, txt_scl//2, fontSize=10)
+    output = TextBox(screen, int(3.2 * width // 4), int(height * 0.88), txt_scl + 5, txt_scl // 2, fontSize=10)
     output.disable()  # Act as label instead of textbox
     return slider, output
 
-def draw_slider(slider, output):
+def draw_difficulty_slider(slider, output):
     events = pygame.event.get()
     output.setText(f"Difficulty: {slider.getValue()}")
+    pygame_widgets.update(events)
+
+def initialize_volume_slider(screen):
+    width, height = pygame.display.get_window_size()
+    txt_scl = 50
+    slider = Slider(screen, width // 4, int(height * 0.95), width//2, 20, min=1, max=100, step=1)
+    output = TextBox(screen, int(3.2 * width // 4), int(height * 0.95), txt_scl + 5, txt_scl // 2, fontSize=10)
+    output.disable()  # Act as label instead of textbox
+    return slider, output
+
+def draw_volume_slider(slider, output):
+    events = pygame.event.get()
+    output.setText(f"Volume: {slider.getValue()}")
     pygame_widgets.update(events)
 
 def run_pause_menu(pause_menu):
@@ -281,7 +295,8 @@ def main(ROWS, COLS):
     screen = initialize_pygame(600, 600)
     gamestates = initialize_gamestates(screen, ROWS, COLS)
     pause_menu = PauseMenu(screen, gamestates)
-    slider, output = initialize_slider(screen)
+    difficulty_slider, difficulty_output = initialize_difficulty_slider(screen)
+    volume_slider, volume_output = initialize_volume_slider(screen)
     clock = pygame.time.Clock()
     snake = Snake(screen, gamestates)
     food = Food(gamestates, screen)
@@ -304,11 +319,12 @@ def main(ROWS, COLS):
             snake.draws()
             snake.display_score()
             pygame.display.flip()
-            clock.tick(slider.getValue() * 5)
+            clock.tick(difficulty_slider.getValue() * 5)
             # Display Handling End ----------------------------------------------------
         else:
             # Pause Menu Start --------------------------------------------------------
-            draw_slider(slider, output)
+            draw_difficulty_slider(difficulty_slider, difficulty_output)
+            draw_volume_slider(volume_slider, volume_output)
             run_pause_menu(pause_menu)
             # Pause Menu End ----------------------------------------------------------\
 
