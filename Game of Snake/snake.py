@@ -10,8 +10,6 @@ from pygame_widgets.textbox import TextBox
 #      - Add grid pattern to board
 #      - Add an endless mode option
 #      - Add Highscore Leaderboard
-#      - Add volume slider to pause
-#      - Make moving snake animation for pause screen
 
 class Cell:
     def __repr__(self):
@@ -325,6 +323,7 @@ def main(ROWS, COLS):
             # Pause Menu Start --------------------------------------------------------
             draw_difficulty_slider(difficulty_slider, difficulty_output)
             draw_volume_slider(volume_slider, volume_output)
+            pygame.mixer.music.set_volume(volume_slider.getValue()/100)
             run_pause_menu(pause_menu)
             # Pause Menu End ----------------------------------------------------------\
 
