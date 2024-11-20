@@ -2,7 +2,6 @@ import pygame
 import pygame_widgets
 import random
 import sys
-import time
 import math
 from pygame_widgets.slider import Slider
 from pygame_widgets.textbox import TextBox
@@ -11,6 +10,7 @@ from pygame_widgets.textbox import TextBox
 #      - Add grid pattern to board
 #      - Add an endless mode option
 #      - Add Highscore Leaderboard
+#      - Add volume slider to pause menu
 
 class Cell:
     def __repr__(self):
@@ -75,18 +75,16 @@ class Snake:
         self.body.append([new_tail_x, new_tail_y])
         self.length += 1
 
-    def check_collisions(self):
+    def check_collisions(self, screen):
         # Checks for collision with walls ----------------------------------------------:
         if not 0 <= self.head_x <= self.cols -1 or not 0 <= self.head_y <= self.rows -1:
             self.lose_sound.play()
-            time.sleep(2)
-            sys.exit(f"GAME OVER: Crashed into wall! Final Score: {self.length}")
+            self.restart_snake()
 
         # Checks for collision with self -----------------------------------------------:
         elif [self.head_x, self.head_y] in self.body[1:]:
             self.lose_sound.play()
-            time.sleep(2)
-            sys.exit(f"GAME OVER: Crashed into self! Final Score: {self.length}")
+            self.restart_snake()
 
     def display_score(self):
         my_font = pygame.font.SysFont('Comic Sans MS', 30)
@@ -100,6 +98,24 @@ class Snake:
                     self.gamestates[cell.y][cell.x].is_empty = False
                 else:
                     self.gamestates[cell.y][cell.x].is_empty = True
+
+    def restart_snake(self):
+        halted = True
+        while halted:
+            events = pygame.event.get()
+            for event in events:
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_y:
+                        self.head_x = self.cols // 2
+                        self.head_y = self.rows // 2
+                        self.length = 0
+                        self.body = [[self.head_x, self.head_y]]
+                        halted = False
+                    elif event.key == pygame.K_n:
+                        halted = False
+                        sys.exit(f"GAME OVER! Final Score: {self.length}")
 
 class Food:
     def __init__(self, gamestates, screen):
@@ -181,7 +197,7 @@ class PauseMenu:
         mute_instruction_surface = my_font.render(mute_instructions_text, True, "black")
         mute_instruction_rect = mute_instruction_surface.get_rect(center=(self.width // 2, self.height * 0.84))
         self.screen.blit(mute_instruction_surface, mute_instruction_rect)
-        # Display Mute Instructions End --------------------------------------------A
+        # Display Mute Instructions End --------------------------------------------
 
 def initialize_pygame(width, height):
     pygame.init()
@@ -223,7 +239,6 @@ def event_checker(snake, is_paused, pause_menu):
                 snake.get_move(event)
             # Logic for muting/unmuting sound
             elif event.key == pygame.K_m:
-                print(pause_menu.is_music_paused)
                 if pause_menu.is_music_paused:
                     pygame.mixer.music.unpause()
                 else:
@@ -272,7 +287,7 @@ def main(ROWS, COLS):
             snake.update_gamestates()
             food.eat_food(snake)
             snake.moves()
-            snake.check_collisions()
+            snake.check_collisions(screen)
             # Logic Handling End ------------------------------------------------------
 
             # Display Handling Start --------------------------------------------------
