@@ -153,6 +153,7 @@ class PauseMenu:
         self.width, self.height = pygame.display.get_window_size()
         self.is_music_paused = False
         self.pause_gamestates = self.create_pause_gamestates(gamestates)
+        self.pause_snake = Snake(self.screen, self.pause_gamestates)
 
     def create_pause_gamestates(self, gamestates):
         index_y_start, index_x_start = len(gamestates) // 4, len(gamestates[0]) // 4
@@ -207,9 +208,6 @@ class PauseMenu:
         self.screen.blit(mute_instruction_surface, mute_instruction_rect)
         # Display Mute Instructions End --------------------------------------------
 
-    def display_snake_animation(self):
-        self.pause_snake.draws()
-
 def initialize_pygame(width, height):
     pygame.init()
 
@@ -262,7 +260,7 @@ def initialize_slider(screen):
     width, height = pygame.display.get_window_size()
     txt_scl = 50
     slider = Slider(screen, width // 4, height - txt_scl, width//2, 20, min=1, max=3, step=1)
-    output = TextBox(screen, width // 2 - txt_scl // 2 , height - txt_scl // 2, txt_scl //2 , txt_scl//2, fontSize=10)
+    output = TextBox(screen, width // 2 - txt_scl // 2 , height - txt_scl // 2, txt_scl + 5, txt_scl//2, fontSize=10)
     output.disable()  # Act as label instead of textbox
     return slider, output
 
