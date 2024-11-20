@@ -7,12 +7,10 @@ from pygame_widgets.slider import Slider
 from pygame_widgets.textbox import TextBox
 
 # TO DO LIST:
-#      - Add a separate "Start Game" screen
 #      - Add grid pattern to board
 #      - Add an endless mode option
 #      - Add Highscore Leaderboard
 #      - Make "Game Paused" and "Start Game" bob up and down
-#      - Add ability to mute sounds
 
 class Cell:
     def __repr__(self):
@@ -198,14 +196,23 @@ def display_pause_menu(screen):
     screen.blit(pause_surface, pause_rect)
     # Display "Game Pause!" End ------------------------------------------------
 
-    # Displays Instructions Start ----------------------------------------------
+    # Displays Pause Instructions Start ----------------------------------------
     instructions_text = "Press Space to Pause/Unpause"
     instructions_size = width // 20
     my_font = pygame.font.SysFont('Comic Sans MS', instructions_size)
     instruction_surface = my_font.render(instructions_text, True, "black")
-    instruction_rect = instruction_surface.get_rect(center=(width//2, 3 * height // 4))
+    instruction_rect = instruction_surface.get_rect(center=(width//2,  height * 0.7))
     screen.blit(instruction_surface, instruction_rect)
-    # Display Instructions End -------------------------------------------------
+    # Display Pause Instructions End -------------------------------------------
+
+    # Displays Move Instructions Start -----------------------------------------
+    move_instructions_text = "Use the arrow keys or w, a, s, d to move"
+    move_instructions_size = width // 20
+    my_font = pygame.font.SysFont('Comic Sans MS', move_instructions_size)
+    move_instruction_surface = my_font.render(move_instructions_text, True, "black")
+    move_instruction_rect = move_instruction_surface.get_rect(center=(width//2, height * 0.8))
+    screen.blit(move_instruction_surface, move_instruction_rect)
+    # Display Move Instructions End --------------------------------------------
 
 def main(ROWS, COLS):
     # Initialize Required Objects Start -------------------------------------------
