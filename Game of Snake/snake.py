@@ -8,12 +8,9 @@ from pygame_widgets.slider import Slider
 from pygame_widgets.textbox import TextBox
 
 # TO DO LIST:
-#      - Add difficulty slider
 #      - Add grid pattern to board
 #      - Add an endless mode option
-#      - Make game start paused until interacted with
 #      - Add Highscore Leaderboard
-#      - Make "Game Paused" and "Start Game" bob up and down
 
 class Cell:
     def __repr__(self):
@@ -132,65 +129,12 @@ class Food:
             self.y = random.randint(0, len(snake.gamestates) - 1)
             snake.grow()
 
-def initialize_pygame(width, height):
-    pygame.init()
-
-    # Visual Initializations -------------------------------------------------------
-    screen = pygame.display.set_mode((width, height))
-    pygame_icon = pygame.image.load('snake.png')
-    pygame.display.set_icon(pygame_icon)
-    pygame.display.set_caption("Classic game of snake brought to you by SavCodes!")
-
-    # Audio Initializations --------------------------------------------------------
-    pygame.mixer.music.load("background_music.mp3")
-    pygame.mixer.music.play(-1)
-
-    return screen
-
-def initialize_gamestates(screen, rows, cols):
-    gamestates = [[Cell(i,j) for i in range(rows)] for j in range(cols)]
-    return gamestates
-
-def event_checker(snake, is_paused):
-    # Valid moves to change the direction of the snake
-    move_set = [pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_DOWN,
-                pygame.K_w, pygame.K_d, pygame.K_s, pygame.K_a]
-
-    # Handles all events in the game loop
-    events = pygame.event.get()
-    for event in events:
-        # Exits game is the program is closed
-        if event.type == pygame.QUIT:
-            sys.exit("Thanks for playing!")
-        # Logic for handling pressed keys
-        elif event.type == pygame.KEYDOWN:
-            # Logic for pausing/unpausing game
-            if event.key == pygame.K_SPACE:
-                is_paused = not is_paused
-            # Logic for updating snake movement direction
-            elif event.key in move_set:
-                snake.get_move(event)
-    pygame_widgets.update(events)
-    return is_paused
-
-def initialize_slider(screen):
-    width, height = pygame.display.get_window_size()
-    txt_scl = 50
-    slider = Slider(screen, width // 4, height - txt_scl, width//2, 20, min=1, max=3, step=1)
-    output = TextBox(screen, width // 2 - txt_scl // 2 , height - txt_scl // 2, txt_scl //2 , txt_scl//2, fontSize=10)
-    output.disable()  # Act as label instead of textbox
-    return slider, output
-
-def draw_slider(slider, output):
-    events = pygame.event.get()
-    output.setText(f"Difficulty: {slider.getValue()}")
-    pygame_widgets.update(events)
-
 class PauseMenu:
     def __init__(self, screen):
         self.screen = screen
         self.bob_index = 0
         self.width, self.height = pygame.display.get_window_size()
+        self.is_music_paused = False
 
     def display_pause_title(self):
         # Displays "Game Paused!" Start --------------------------------------------
@@ -225,9 +169,81 @@ class PauseMenu:
         move_instructions_size = self.width // 20
         my_font = pygame.font.SysFont('Comic Sans MS', move_instructions_size)
         move_instruction_surface = my_font.render(move_instructions_text, True, "black")
-        move_instruction_rect = move_instruction_surface.get_rect(center=(self.width // 2, self.height * 0.8))
+        move_instruction_rect = move_instruction_surface.get_rect(center=(self.width // 2, self.height * 0.77))
         self.screen.blit(move_instruction_surface, move_instruction_rect)
         # Display Move Instructions End --------------------------------------------
+
+    def display_mute_instructions(self):
+        # Displays Mute Instructions Start -----------------------------------------
+        mute_instructions_text = "Press 'm' to Mute/Unmute Sound"
+        mute_instructions_size = self.width // 20
+        my_font = pygame.font.SysFont('Comic Sans MS', mute_instructions_size)
+        mute_instruction_surface = my_font.render(mute_instructions_text, True, "black")
+        mute_instruction_rect = mute_instruction_surface.get_rect(center=(self.width // 2, self.height * 0.84))
+        self.screen.blit(mute_instruction_surface, mute_instruction_rect)
+        # Display Mute Instructions End --------------------------------------------
+
+def initialize_pygame(width, height):
+    pygame.init()
+
+    # Visual Initializations -------------------------------------------------------
+    screen = pygame.display.set_mode((width, height))
+    pygame_icon = pygame.image.load('snake.png')
+    pygame.display.set_icon(pygame_icon)
+    pygame.display.set_caption("Classic game of snake brought to you by SavCodes!")
+
+    # Audio Initializations --------------------------------------------------------
+    pygame.mixer.music.load("background_music.mp3")
+    pygame.mixer.music.play(-1)
+
+    return screen
+
+def initialize_gamestates(screen, rows, cols):
+    gamestates = [[Cell(i,j) for i in range(rows)] for j in range(cols)]
+    return gamestates
+
+def event_checker(snake, is_paused, pause_menu):
+    # Valid moves to change the direction of the snake
+    move_set = [pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_DOWN,
+                pygame.K_w, pygame.K_d, pygame.K_s, pygame.K_a]
+
+    # Handles all events in the game loop
+    events = pygame.event.get()
+    for event in events:
+        # Exits game is the program is closed
+        if event.type == pygame.QUIT:
+            sys.exit("Thanks for playing!")
+        # Logic for handling pressed keys
+        elif event.type == pygame.KEYDOWN:
+            # Logic for pausing/unpausing game
+            if event.key == pygame.K_SPACE:
+                is_paused = not is_paused
+            # Logic for updating snake movement direction
+            elif event.key in move_set:
+                snake.get_move(event)
+            # Logic for muting/unmuting sound
+            elif event.key == pygame.K_m:
+                print(pause_menu.is_music_paused)
+                if pause_menu.is_music_paused:
+                    pygame.mixer.music.unpause()
+                else:
+                    pygame.mixer.music.pause()
+                pause_menu.is_music_paused = not pause_menu.is_music_paused
+    pygame_widgets.update(events)
+    return is_paused
+
+def initialize_slider(screen):
+    width, height = pygame.display.get_window_size()
+    txt_scl = 50
+    slider = Slider(screen, width // 4, height - txt_scl, width//2, 20, min=1, max=3, step=1)
+    output = TextBox(screen, width // 2 - txt_scl // 2 , height - txt_scl // 2, txt_scl //2 , txt_scl//2, fontSize=10)
+    output.disable()  # Act as label instead of textbox
+    return slider, output
+
+def draw_slider(slider, output):
+    events = pygame.event.get()
+    output.setText(f"Difficulty: {slider.getValue()}")
+    pygame_widgets.update(events)
 
 def main(ROWS, COLS):
     # Initialize Required Objects Start -------------------------------------------
@@ -242,7 +258,7 @@ def main(ROWS, COLS):
     # Initialize Required Objects End ---------------------------------------------
 
     while True:
-        is_paused = event_checker(snake, is_paused)
+        is_paused = event_checker(snake, is_paused, pause_menu)
         screen.fill("white")
         if not is_paused:
             # Logic Handling Start ----------------------------------------------------
@@ -265,6 +281,7 @@ def main(ROWS, COLS):
             pause_menu.display_pause_title()
             pause_menu.display_pause_instructions()
             pause_menu.display_move_instructions()
+            pause_menu.display_mute_instructions()
             pygame.display.update()
             # Pause Menu End ----------------------------------------------------------\
 
