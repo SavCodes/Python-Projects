@@ -181,7 +181,7 @@ class PauseMenu:
         mute_instruction_surface = my_font.render(mute_instructions_text, True, "black")
         mute_instruction_rect = mute_instruction_surface.get_rect(center=(self.width // 2, self.height * 0.84))
         self.screen.blit(mute_instruction_surface, mute_instruction_rect)
-        # Display Mute Instructions End --------------------------------------------
+        # Display Mute Instructions End --------------------------------------------A
 
 def initialize_pygame(width, height):
     pygame.init()
@@ -245,6 +245,13 @@ def draw_slider(slider, output):
     output.setText(f"Difficulty: {slider.getValue()}")
     pygame_widgets.update(events)
 
+def run_pause_menu(pause_menu):
+    pause_menu.display_pause_title()
+    pause_menu.display_pause_instructions()
+    pause_menu.display_move_instructions()
+    pause_menu.display_mute_instructions()
+    pygame.display.update()
+
 def main(ROWS, COLS):
     # Initialize Required Objects Start -------------------------------------------
     screen = initialize_pygame(600, 600)
@@ -278,11 +285,7 @@ def main(ROWS, COLS):
         else:
             # Pause Menu Start --------------------------------------------------------
             draw_slider(slider, output)
-            pause_menu.display_pause_title()
-            pause_menu.display_pause_instructions()
-            pause_menu.display_move_instructions()
-            pause_menu.display_mute_instructions()
-            pygame.display.update()
+            run_pause_menu(pause_menu)
             # Pause Menu End ----------------------------------------------------------\
 
 if __name__ == "__main__":
