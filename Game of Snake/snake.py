@@ -10,7 +10,8 @@ from pygame_widgets.textbox import TextBox
 #      - Add grid pattern to board
 #      - Add an endless mode option
 #      - Add Highscore Leaderboard
-#      - Add volume slider to pause menu
+#      - Add volume slider to pause
+#      - Make moving snake animation for pause screen
 
 class Cell:
     def __repr__(self):
@@ -146,11 +147,18 @@ class Food:
             snake.grow()
 
 class PauseMenu:
-    def __init__(self, screen):
+    def __init__(self, screen, gamestates):
         self.screen = screen
         self.bob_index = 0
         self.width, self.height = pygame.display.get_window_size()
         self.is_music_paused = False
+        self.pause_gamestates = self.create_pause_gamestates(gamestates)
+
+    def create_pause_gamestates(self, gamestates):
+        index_y_start, index_x_start = len(gamestates) // 4, len(gamestates[0]) // 4
+        index_y_end, index_x_end = 2 * len(gamestates) // 4, 2 * len(gamestates[0]) // 4
+        pause_gamestates = [row[index_x_start:index_x_end] for row in gamestates[index_y_start:index_y_end]]
+        return pause_gamestates
 
     def display_pause_title(self):
         # Displays "Game Paused!" Start --------------------------------------------
@@ -198,6 +206,9 @@ class PauseMenu:
         mute_instruction_rect = mute_instruction_surface.get_rect(center=(self.width // 2, self.height * 0.84))
         self.screen.blit(mute_instruction_surface, mute_instruction_rect)
         # Display Mute Instructions End --------------------------------------------
+
+    def display_snake_animation(self):
+        self.pause_snake.draws()
 
 def initialize_pygame(width, height):
     pygame.init()
@@ -271,7 +282,7 @@ def main(ROWS, COLS):
     # Initialize Required Objects Start -------------------------------------------
     screen = initialize_pygame(600, 600)
     gamestates = initialize_gamestates(screen, ROWS, COLS)
-    pause_menu = PauseMenu(screen)
+    pause_menu = PauseMenu(screen, gamestates)
     slider, output = initialize_slider(screen)
     clock = pygame.time.Clock()
     snake = Snake(screen, gamestates)
