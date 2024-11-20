@@ -3,12 +3,15 @@ import pygame_widgets
 import random
 import sys
 import time
+import math
 from pygame_widgets.slider import Slider
 from pygame_widgets.textbox import TextBox
 
 # TO DO LIST:
+#      - Add difficulty slider
 #      - Add grid pattern to board
 #      - Add an endless mode option
+#      - Make game start paused until interacted with
 #      - Add Highscore Leaderboard
 #      - Make "Game Paused" and "Start Game" bob up and down
 
@@ -183,41 +186,54 @@ def draw_slider(slider, output):
     output.setText(f"Difficulty: {slider.getValue()}")
     pygame_widgets.update(events)
 
-def display_pause_menu(screen):
-    # Initialized display associated variables
-    width, height = pygame.display.get_window_size()
+class PauseMenu:
+    def __init__(self, screen):
+        self.screen = screen
+        self.bob_index = 0
+        self.width, self.height = pygame.display.get_window_size()
 
-    # Displays "Game Paused!" Start --------------------------------------------
-    pause_text = "Game Paused!"
-    pause_size = width // 8
-    my_font = pygame.font.SysFont('Comic Sans MS', pause_size)
-    pause_surface = my_font.render(pause_text, True, "black")
-    pause_rect = pause_surface.get_rect(center=(width//2, height//2))
-    screen.blit(pause_surface, pause_rect)
-    # Display "Game Pause!" End ------------------------------------------------
+    def display_pause_title(self):
+        # Displays "Game Paused!" Start --------------------------------------------
+        pause_text = "Game Paused!"
+        pause_size = self.width // 8
+        my_font = pygame.font.SysFont('Comic Sans MS', pause_size)
+        pause_surface = my_font.render(pause_text, True, "black")
+        pause_rect = pause_surface.get_rect(center=(self.width // 2, self.height // 2 + 20* math.sin(self.bob_index / 100)))
+        self.screen.blit(pause_surface, pause_rect)
+        # Display "Game Pause!" End ------------------------------------------------
 
-    # Displays Pause Instructions Start ----------------------------------------
-    instructions_text = "Press Space to Pause/Unpause"
-    instructions_size = width // 20
-    my_font = pygame.font.SysFont('Comic Sans MS', instructions_size)
-    instruction_surface = my_font.render(instructions_text, True, "black")
-    instruction_rect = instruction_surface.get_rect(center=(width//2,  height * 0.7))
-    screen.blit(instruction_surface, instruction_rect)
-    # Display Pause Instructions End -------------------------------------------
+        # Title Bobbing Logic Start ------------------------------------------------
+        if self.bob_index < math.pi * 100:
+            self.bob_index += 1
+        else:
+            self.bob_index = 0
+        # Title Bobbing Logic End --------------------------------------------------
 
-    # Displays Move Instructions Start -----------------------------------------
-    move_instructions_text = "Use the arrow keys or w, a, s, d to move"
-    move_instructions_size = width // 20
-    my_font = pygame.font.SysFont('Comic Sans MS', move_instructions_size)
-    move_instruction_surface = my_font.render(move_instructions_text, True, "black")
-    move_instruction_rect = move_instruction_surface.get_rect(center=(width//2, height * 0.8))
-    screen.blit(move_instruction_surface, move_instruction_rect)
-    # Display Move Instructions End --------------------------------------------
+    def display_pause_instructions(self):
+        # Displays Pause Instructions Start ----------------------------------------
+        instructions_text = "Press Space to Pause/Unpause"
+        instructions_size = self.width // 20
+        my_font = pygame.font.SysFont('Comic Sans MS', instructions_size)
+        instruction_surface = my_font.render(instructions_text, True, "black")
+        instruction_rect = instruction_surface.get_rect(center=(self.width * 0.5, self.height * 0.7))
+        self.screen.blit(instruction_surface, instruction_rect)
+        # Display Pause Instructions End -------------------------------------------
+
+    def display_move_instructions(self):
+        # Displays Move Instructions Start -----------------------------------------
+        move_instructions_text = "Use the arrow keys or w, a, s, d to move"
+        move_instructions_size = self.width // 20
+        my_font = pygame.font.SysFont('Comic Sans MS', move_instructions_size)
+        move_instruction_surface = my_font.render(move_instructions_text, True, "black")
+        move_instruction_rect = move_instruction_surface.get_rect(center=(self.width // 2, self.height * 0.8))
+        self.screen.blit(move_instruction_surface, move_instruction_rect)
+        # Display Move Instructions End --------------------------------------------
 
 def main(ROWS, COLS):
     # Initialize Required Objects Start -------------------------------------------
     screen = initialize_pygame(600, 600)
     gamestates = initialize_gamestates(screen, ROWS, COLS)
+    pause_menu = PauseMenu(screen)
     slider, output = initialize_slider(screen)
     clock = pygame.time.Clock()
     snake = Snake(screen, gamestates)
@@ -246,7 +262,9 @@ def main(ROWS, COLS):
         else:
             # Pause Menu Start --------------------------------------------------------
             draw_slider(slider, output)
-            display_pause_menu(screen)
+            pause_menu.display_pause_title()
+            pause_menu.display_pause_instructions()
+            pause_menu.display_move_instructions()
             pygame.display.update()
             # Pause Menu End ----------------------------------------------------------\
 
