@@ -1,12 +1,18 @@
 import pygame
+import pygame_widgets
 import random
 import sys
 import time
+from pygame_widgets.slider import Slider
+from pygame_widgets.textbox import TextBox
 
 # TO DO LIST:
-#      - Add difficulty slider
+#      - Add a separate "Start Game" screen
 #      - Add grid pattern to board
 #      - Add an endless mode option
+#      - Add Highscore Leaderboard
+#      - Make "Game Paused" and "Start Game" bob up and down
+#      - Add ability to mute sounds
 
 class Cell:
     def __repr__(self):
@@ -144,39 +150,100 @@ def initialize_gamestates(screen, rows, cols):
     gamestates = [[Cell(i,j) for i in range(rows)] for j in range(cols)]
     return gamestates
 
-def event_checker(snake):
-    for event in pygame.event.get():
+def event_checker(snake, is_paused):
+    # Valid moves to change the direction of the snake
+    move_set = [pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_DOWN,
+                pygame.K_w, pygame.K_d, pygame.K_s, pygame.K_a]
+
+    # Handles all events in the game loop
+    events = pygame.event.get()
+    for event in events:
+        # Exits game is the program is closed
         if event.type == pygame.QUIT:
             sys.exit("Thanks for playing!")
+        # Logic for handling pressed keys
         elif event.type == pygame.KEYDOWN:
-            snake.get_move(event)
+            # Logic for pausing/unpausing game
+            if event.key == pygame.K_SPACE:
+                is_paused = not is_paused
+            # Logic for updating snake movement direction
+            elif event.key in move_set:
+                snake.get_move(event)
+    pygame_widgets.update(events)
+    return is_paused
+
+def initialize_slider(screen):
+    width, height = pygame.display.get_window_size()
+    txt_scl = 50
+    slider = Slider(screen, width // 4, height - txt_scl, width//2, 20, min=1, max=3, step=1)
+    output = TextBox(screen, width // 2 - txt_scl // 2 , height - txt_scl // 2, txt_scl //2 , txt_scl//2, fontSize=10)
+    output.disable()  # Act as label instead of textbox
+    return slider, output
+
+def draw_slider(slider, output):
+    events = pygame.event.get()
+    output.setText(f"Difficulty: {slider.getValue()}")
+    pygame_widgets.update(events)
+
+def display_pause_menu(screen):
+    # Initialized display associated variables
+    width, height = pygame.display.get_window_size()
+
+    # Displays "Game Paused!" Start --------------------------------------------
+    pause_text = "Game Paused!"
+    pause_size = width // 8
+    my_font = pygame.font.SysFont('Comic Sans MS', pause_size)
+    pause_surface = my_font.render(pause_text, True, "black")
+    pause_rect = pause_surface.get_rect(center=(width//2, height//2))
+    screen.blit(pause_surface, pause_rect)
+    # Display "Game Pause!" End ------------------------------------------------
+
+    # Displays Instructions Start ----------------------------------------------
+    instructions_text = "Press Space to Pause/Unpause"
+    instructions_size = width // 20
+    my_font = pygame.font.SysFont('Comic Sans MS', instructions_size)
+    instruction_surface = my_font.render(instructions_text, True, "black")
+    instruction_rect = instruction_surface.get_rect(center=(width//2, 3 * height // 4))
+    screen.blit(instruction_surface, instruction_rect)
+    # Display Instructions End -------------------------------------------------
 
 def main(ROWS, COLS):
-    # Initialize Required Objects Start --------------------------------------------
+    # Initialize Required Objects Start -------------------------------------------
     screen = initialize_pygame(600, 600)
     gamestates = initialize_gamestates(screen, ROWS, COLS)
+    slider, output = initialize_slider(screen)
     clock = pygame.time.Clock()
     snake = Snake(screen, gamestates)
     food = Food(gamestates, screen)
+    is_paused = True
     # Initialize Required Objects End ---------------------------------------------
-    while True:
-        # Logic Handling Start ----------------------------------------------------
-        snake.update_gamestates()
-        food.eat_food(snake)
-        event_checker(snake)
-        snake.moves()
-        snake.check_collisions()
-        # Logic Handling End ------------------------------------------------------
 
-        # Display Handling Start --------------------------------------------------
+    while True:
+        is_paused = event_checker(snake, is_paused)
         screen.fill("white")
-        food.spawn_food(snake)
-        snake.draws()
-        snake.display_score()
-        pygame.display.flip()
-        clock.tick(10)
-        # Display Handling End ----------------------------------------------------
+        if not is_paused:
+            # Logic Handling Start ----------------------------------------------------
+            snake.update_gamestates()
+            food.eat_food(snake)
+            snake.moves()
+            snake.check_collisions()
+            # Logic Handling End ------------------------------------------------------
+
+            # Display Handling Start --------------------------------------------------
+            food.spawn_food(snake)
+            snake.draws()
+            snake.display_score()
+            pygame.display.flip()
+            clock.tick(slider.getValue() * 5)
+            # Display Handling End ----------------------------------------------------
+        else:
+            # Pause Menu Start --------------------------------------------------------
+            draw_slider(slider, output)
+            display_pause_menu(screen)
+            pygame.display.update()
+            # Pause Menu End ----------------------------------------------------------\
 
 if __name__ == "__main__":
     main(20, 20)
+
 
