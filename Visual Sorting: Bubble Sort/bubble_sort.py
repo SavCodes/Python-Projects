@@ -12,6 +12,7 @@ class Rectangle:
 
 class BubbleSorter:
     def __init__(self, array_size):
+        self.clock = Clock()
         self.screen = pygame.display.set_mode((600, 600))
         self.arraySize = array_size
         self.screenWidth, self.screenHeight = self.screen.get_size()
@@ -33,7 +34,6 @@ class BubbleSorter:
 
     def check_done_sorting(self):
         if self.endIndex == 0:
-            print(f"Comparison: {self.comparisonCount}    ||    Swaps: {self.swapCount}")
             self.currentIndex, self.endIndex = 0, len(self.array)
             self.restart_array()
 
@@ -90,24 +90,27 @@ class BubbleSorter:
 
     def restart_array(self):
         time.sleep(2)
+        self.clock.current_time = 0
         self.comparisonCount, self.swapCount = 0, 0
         self.array = [Rectangle(random.randint(1,self.screenHeight)) for i in range(self.arraySize)]
 
 class Clock:
-    def __init__(self):
+    def __init__(self, tick_speed=300):
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode((600, 600))
         self.current_time = 0
+        self.text_size = 25
+        self.tick_speed = tick_speed
         self.screen_height, self.screen_width = pygame.display.get_window_size()
-        self.font = pygame.font.Font(None, 20)
+        self.font = pygame.font.Font(None, self.text_size)
 
     def update(self):
-        self.clock.tick()
+        self.clock.tick(self.tick_speed)
         self.current_time += self.clock.get_time()
 
     def display(self):
-        clock_text = self.font.render(f"Time: {self.current_time/1000:.2f}", True, (0, 0, 0))
-        clock_text_position = clock_text.get_rect(centerx=self.screen_width//2, y=20)
+        clock_text = self.font.render(f"Time: {self.current_time/1000:.2f}s", True, (0, 0, 0))
+        clock_text_position = clock_text.get_rect(x=0, y=self.text_size / 2 * 3 + 3)
         self.screen.blit(clock_text, clock_text_position)
 
 def event_checker():
@@ -127,15 +130,14 @@ def initialize_pygame():
 def main(rectangle_number):
     running = True
     screen= initialize_pygame()
-    clock = Clock()
     bubbleSorter = BubbleSorter(rectangle_number)
     while running:
         running = event_checker()
-        bubbleSorter.screen.fill("purple")
+        bubbleSorter.screen.fill((50, 50, 50))
         bubbleSorter.sort_array()
         bubbleSorter.display_statistics()
-        clock.update()
-        clock.display()
+        bubbleSorter.clock.update()
+        bubbleSorter.clock.display()
         pygame.display.flip()
 
     pygame.quit()
