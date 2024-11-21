@@ -1,3 +1,10 @@
+import pygame
+import random
+import time
+
+# TO DO LIST:
+# -Add a sound effect corresponding to the height of the rectangle
+
 class Rectangle:
     def __init__(self, height):
         self.height = height
@@ -63,6 +70,9 @@ class BubbleSorter:
         # Sets font and font size for all text displayed to screen
         text_size = 25
         font = pygame.font.Font(None, text_size)
+        # Generate the title text
+        title_text = font.render("Bubble Sorter", True, (0, 0, 0))
+        title_text_pos = title_text.get_rect(centerx=self.arraySize/2 * self.rectWidth)
         # Generates the running total of comparisons performed while sorting
         array_size_text = font.render(f"Array Size: {self.arraySize}" , True, (10, 10, 10))
         array_size_pos = array_size_text.get_rect(x=0, y=0)
@@ -73,6 +83,7 @@ class BubbleSorter:
         swap_text = font.render(f"Swaps: {self.swapCount}" , True, (10, 10, 10))
         swap_text_pos = count_text.get_rect(x=0, y=text_size + 2)
         # Displays both the comparison and swap count to screen
+        self.screen.blit(title_text, title_text_pos)
         self.screen.blit(array_size_text, array_size_pos)
         self.screen.blit(swap_text, swap_text_pos)
         self.screen.blit(count_text, count_text_pos)
@@ -82,25 +93,52 @@ class BubbleSorter:
         self.comparisonCount, self.swapCount = 0, 0
         self.array = [Rectangle(random.randint(1,self.screenHeight)) for i in range(self.arraySize)]
 
-def main(rectangle_number):
+class Clock:
+    def __init__(self):
+        self.clock = pygame.time.Clock()
+        self.screen = pygame.display.set_mode((600, 600))
+        self.current_time = 0
+        self.screen_height, self.screen_width = pygame.display.get_window_size()
+        self.font = pygame.font.Font(None, 20)
+
+    def update(self):
+        self.clock.tick()
+        self.current_time += self.clock.get_time()
+
+    def display(self):
+        clock_text = self.font.render(f"Time: {self.current_time/1000:.2f}", True, (0, 0, 0))
+        clock_text_position = clock_text.get_rect(centerx=self.screen_width//2, y=20)
+        self.screen.blit(clock_text, clock_text_position)
+
+def event_checker():
+    events = pygame.event.get()
+    for event in events:
+        if event.type == pygame.QUIT:
+            return False
+    return True
+
+def initialize_pygame():
     pygame.init()
     pygame.display.set_caption("Bubble Sorter")
-
-    screen = pygame.display.set_mode((600, 600))
     pygame.display.set_icon(pygame.image.load('bubble.jfif'))
-    clock = pygame.time.Clock()
+    screen = pygame.display.set_mode((600, 600))
+    return screen
+
+def main(rectangle_number):
     running = True
+    screen= initialize_pygame()
+    clock = Clock()
     bubbleSorter = BubbleSorter(rectangle_number)
     while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-        screen.fill("purple")
+        running = event_checker()
+        bubbleSorter.screen.fill("purple")
         bubbleSorter.sort_array()
         bubbleSorter.display_statistics()
+        clock.update()
+        clock.display()
         pygame.display.flip()
-        clock.tick(300)  # limits FPS to 60
+
     pygame.quit()
 
 if __name__ == '__main__':
-    main(rectangle_number=200)
+    main(rectangle_number=50)
