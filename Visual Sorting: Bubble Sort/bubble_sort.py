@@ -35,7 +35,7 @@ class BubbleSorter:
             pygame.draw.rect(self.screen, "black", borderDimensions, width=0)
             pygame.draw.rect(self.screen, color, rectangleDimensions, width=0)
 
-    def checkDoneSorting(self):
+    def check_done_sorting(self):
         if self.endIndex == 0:
             print(f"Comparison: {self.comparisonCount}    ||    Swaps: {self.swapCount}")
             self.currentIndex, self.endIndex = 0, len(self.array)
@@ -60,7 +60,7 @@ class BubbleSorter:
         # Display the updated rectangle states
         self.display_array()
         # Once the full array of rectangles is sorted exit the program
-        self.checkDoneSorting()
+        self.check_done_sorting()
         # Once the rectangle is fully sorted, return to the beginning and decrement the maximum index sorted
         self.loop_through_rectangles()
         # If the current rectangle height is larger than the next rectangle's height, they swap positions
@@ -75,11 +75,15 @@ class BubbleSorter:
 
     def restart_array(self):
         time.sleep(2)
+        self.comparisonCount, self.swapCount = 0, 0
         self.array = [Rectangle(random.randint(1,self.screenHeight)) for i in range(self.arraySize)]
 
 def main(rectangle_number):
     pygame.init()
+    pygame.display.set_caption("Bubble Sorter")
+
     screen = pygame.display.set_mode((600, 600))
+    pygame.display.set_icon(pygame.image.load('bubble.jfif'))
     clock = pygame.time.Clock()
     running = True
     bubbleSorter = BubbleSorter(rectangle_number)
