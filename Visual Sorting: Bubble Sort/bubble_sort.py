@@ -7,7 +7,7 @@ import sys
 # -Add running statistics display (total number of comparisons, number of swaps, total time to run)
 # -Add title text "Bubble Sort"
 # -Add program logo and caption
-# -Add a round corresponding to the height of the rectangle
+# -Add a sound effect corresponding to the height of the rectangle
 
 class Rectangle:
     def __init__(self, height):
@@ -30,7 +30,9 @@ class BubbleSorter:
                 color = (0, 255, 0)
             else:
                 color = (255,255,255)
-            rectangleDimensions = (index*self.rectWidth, self.screenHeight - rect.height, self.rectWidth, rect.height)
+            rectangleDimensions = (index*self.rectWidth+1, self.screenHeight - rect.height+1, self.rectWidth-1, rect.height)
+            borderDimensions = (index * self.rectWidth, self.screenHeight - rect.height, self.rectWidth, rect.height)
+            pygame.draw.rect(self.screen, "black", borderDimensions, width=0)
             pygame.draw.rect(self.screen, color, rectangleDimensions, width=0)
 
     def checkDoneSorting(self):
