@@ -38,8 +38,8 @@ class BubbleSorter:
     def checkDoneSorting(self):
         if self.endIndex == 0:
             print(f"Comparison: {self.comparisonCount}    ||    Swaps: {self.swapCount}")
-            time.sleep(5)
-            sys.exit()
+            self.currentIndex, self.endIndex = 0, len(self.array)
+            self.restart_array()
 
     def loopThroughRectangles(self):
         if self.currentIndex >= self.endIndex - 1:
@@ -73,12 +73,17 @@ class BubbleSorter:
     def display_statistics(self):
         pass
 
-def main(rectangleNumber):
+    def restart_array(self):
+        time.sleep(2)
+        self.array = [Rectangle(random.randint(1,self.screenHeight)) for i in range(self.arraySize)]
+
+
+def main(rectangle_number):
     pygame.init()
     screen = pygame.display.set_mode((600, 600))
     clock = pygame.time.Clock()
     running = True
-    bubbleSorter = BubbleSorter(rectangleNumber)
+    bubbleSorter = BubbleSorter(rectangle_number)
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -87,8 +92,8 @@ def main(rectangleNumber):
         bubbleSorter.sortArray()
         bubbleSorter.display_statistics()
         pygame.display.flip()
-        clock.tick(300)  # limits FPS to 60
+        clock.tick(5)  # limits FPS to 60
     pygame.quit()
 
 if __name__ == '__main__':
-    main(rectangleNumber=100)
+    main(rectangle_number=10)
