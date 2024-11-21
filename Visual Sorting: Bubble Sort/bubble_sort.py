@@ -71,7 +71,14 @@ class BubbleSorter:
         self.currentIndex += 1
 
     def display_statistics(self):
-        pass
+        textSize = 25
+        font = pygame.font.Font(None, textSize)
+        countText = font.render(f"Comparisons: {self.comparisonCount}" , True, (10, 10, 10))
+        countTextPos = countText.get_rect(x=0, y=0)
+        swapText = font.render(f"Swaps: {self.swapCount}" , True, (10, 10, 10))
+        swapTextPos = countText.get_rect(x=0, y=textSize/2)
+        self.screen.blit(swapText, swapTextPos)
+        self.screen.blit(countText, countTextPos)
 
     def restart_array(self):
         time.sleep(2)
