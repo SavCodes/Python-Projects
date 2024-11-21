@@ -4,9 +4,8 @@ import time
 import sys
 
 # TO DO LIST:
-# -Add running statistics display (total number of comparisons, number of swaps, total time to run)
+# -Add time to complete to statistics display 
 # -Add title text "Bubble Sort"
-# -Add program logo and caption
 # -Add a sound effect corresponding to the height of the rectangle
 
 class Rectangle:
