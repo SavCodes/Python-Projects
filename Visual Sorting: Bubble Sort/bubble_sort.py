@@ -1,5 +1,7 @@
 import pygame
 import random
+import time
+import sys
 
 class Rectangle:
     def __init__(self, height):
@@ -13,7 +15,7 @@ class BubbleSorter:
         self.screenWidth, self.screenHeight = self.screen.get_size()
         self.rectWidth = self.screenWidth / self.arraySize
         self.array = [Rectangle(random.randint(1,100)) for i in range(self.arraySize)]
-        self.startIndex, self.currentIndex = 0, 0
+        self.endIndex, self.currentIndex = self.arraySize, 0
 
     def displayArray(self):
         for index, rect in enumerate(self.array):
@@ -26,9 +28,14 @@ class BubbleSorter:
 
     def sortArray(self):
         self.array[self.currentIndex].isBeingSorted = True
-
-        # Once the full listed is sorted through return to the beginning
-        if self.currentIndex >= len(self.array) - 1:
+        if self.endIndex == 0:
+            time.sleep(5)
+            sys.exit()
+            
+        # Once the full listed is sorted through return to the beginning and decrement the maximum index sorted
+        if self.currentIndex >= self.endIndex - 1:
+            self.array[self.currentIndex].isBeingSorted = False
+            self.endIndex -= 1
             self.currentIndex = 0
 
         # If the current rectangle height is larger than the next rectangle's height, they swap positions
