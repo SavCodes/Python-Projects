@@ -1,13 +1,3 @@
-import pygame
-import random
-import time
-import sys
-
-# TO DO LIST:
-# -Add time to complete to statistics display 
-# -Add title text "Bubble Sort"
-# -Add a sound effect corresponding to the height of the rectangle
-
 class Rectangle:
     def __init__(self, height):
         self.height = height
@@ -70,14 +60,22 @@ class BubbleSorter:
         self.currentIndex += 1
 
     def display_statistics(self):
-        textSize = 25
-        font = pygame.font.Font(None, textSize)
-        countText = font.render(f"Comparisons: {self.comparisonCount}" , True, (10, 10, 10))
-        countTextPos = countText.get_rect(x=0, y=0)
-        swapText = font.render(f"Swaps: {self.swapCount}" , True, (10, 10, 10))
-        swapTextPos = countText.get_rect(x=0, y=textSize/2)
-        self.screen.blit(swapText, swapTextPos)
-        self.screen.blit(countText, countTextPos)
+        # Sets font and font size for all text displayed to screen
+        text_size = 25
+        font = pygame.font.Font(None, text_size)
+        # Generates the running total of comparisons performed while sorting
+        array_size_text = font.render(f"Array Size: {self.arraySize}" , True, (10, 10, 10))
+        array_size_pos = array_size_text.get_rect(x=0, y=0)
+        # Generates the running total of comparisons performed while sorting
+        count_text = font.render(f"Comparisons: {self.comparisonCount}" , True, (10, 10, 10))
+        count_text_pos = count_text.get_rect(x=0, y=text_size//2 + 1)
+        # Generates the running total of rectangle swaps performed while sorting
+        swap_text = font.render(f"Swaps: {self.swapCount}" , True, (10, 10, 10))
+        swap_text_pos = count_text.get_rect(x=0, y=text_size + 2)
+        # Displays both the comparison and swap count to screen
+        self.screen.blit(array_size_text, array_size_pos)
+        self.screen.blit(swap_text, swap_text_pos)
+        self.screen.blit(count_text, count_text_pos)
 
     def restart_array(self):
         time.sleep(2)
@@ -101,8 +99,8 @@ def main(rectangle_number):
         bubbleSorter.sort_array()
         bubbleSorter.display_statistics()
         pygame.display.flip()
-        clock.tick(5)  # limits FPS to 60
+        clock.tick(300)  # limits FPS to 60
     pygame.quit()
 
 if __name__ == '__main__':
-    main(rectangle_number=10)
+    main(rectangle_number=200)
