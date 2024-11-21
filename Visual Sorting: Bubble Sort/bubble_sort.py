@@ -25,15 +25,19 @@ class BubbleSorter:
             pygame.draw.rect(self.screen, color, rectangleDimensions, width=0)
 
     def sortArray(self):
-        # Checks current rectangle in the array against the next, if it is larger they swap
+        self.array[self.currentIndex].isBeingSorted = True
+
+        # Once the full listed is sorted through return to the beginning
         if self.currentIndex >= len(self.array) - 1:
             self.currentIndex = 0
 
+        # If the current rectangle height is larger than the next rectangle's height, they swap positions
         if self.array[self.currentIndex].height > self.array[self.currentIndex+1].height:
             self.array[self.currentIndex], self.array[self.currentIndex+1] = self.array[self.currentIndex+1], self.array[self.currentIndex]
 
-        self.currentIndex += 1
         self.displayArray()
+        self.array[self.currentIndex].isBeingSorted = False
+        self.currentIndex += 1
 
 
 def main():
@@ -49,7 +53,7 @@ def main():
         screen.fill("purple")
         bubbleSorter.sortArray()
         pygame.display.flip()
-        clock.tick(120)  # limits FPS to 60
+        clock.tick(60)  # limits FPS to 60
     pygame.quit()
 
 
