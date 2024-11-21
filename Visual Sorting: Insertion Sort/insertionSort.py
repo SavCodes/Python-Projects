@@ -2,12 +2,15 @@ import pygame
 import random
 import time
 
+# TO DO LIST:
+# -Add a sound effect corresponding to the height of the rectangle
+
 class Rectangle:
     def __init__(self, height):
         self.height = height
         self.isBeingSorted = False
 
-class BubbleSorter:
+class InsertionSorter:
     def __init__(self, array_size):
         self.clock = Clock()
         self.screen = pygame.display.set_mode((600, 600))
@@ -68,7 +71,7 @@ class BubbleSorter:
         text_size = 25
         font = pygame.font.Font(None, text_size)
         # Generate the title text
-        title_text = font.render("Bubble Sort Visualization", True, (0, 0, 0))
+        title_text = font.render("Insertion Sort Visualization", True, (0, 0, 0))
         title_text_pos = title_text.get_rect(centerx=self.arraySize/2 * self.rectWidth)
         # Generates the running total of comparisons performed while sorting
         array_size_text = font.render(f"Array Size: {self.arraySize}" , True, (10, 10, 10))
@@ -119,22 +122,22 @@ def event_checker():
 
 def initialize_pygame():
     pygame.init()
-    pygame.display.set_caption("Bubble Sorter")
-    pygame.display.set_icon(pygame.image.load('bubble.jfif'))
+    pygame.display.set_caption("Insertion Sorter")
+    #pygame.display.set_icon(pygame.image.load('bubble.jfif'))
     screen = pygame.display.set_mode((600, 600))
     return screen
 
 def main(rectangle_number):
     running = True
     screen= initialize_pygame()
-    bubbleSorter = BubbleSorter(rectangle_number)
+    insertion_sorter = InsertionSorter(rectangle_number)
     while running:
         running = event_checker()
-        bubbleSorter.screen.fill((50, 50, 50))
-        bubbleSorter.sort_array()
-        bubbleSorter.display_statistics()
-        bubbleSorter.clock.update()
-        bubbleSorter.clock.display()
+        insertion_sorter.screen.fill((50, 50, 50))
+        insertion_sorter.sort_array()
+        insertion_sorter.display_statistics()
+        insertion_sorter.clock.update()
+        insertion_sorter.clock.display()
         pygame.display.flip()
 
     pygame.quit()
