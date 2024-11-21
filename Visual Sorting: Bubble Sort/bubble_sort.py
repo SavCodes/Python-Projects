@@ -15,16 +15,16 @@ class Rectangle:
         self.isBeingSorted = False
 
 class BubbleSorter:
-    def __init__(self, arraySize):
+    def __init__(self, array_size):
         self.screen = pygame.display.set_mode((600, 600))
-        self.arraySize = arraySize
+        self.arraySize = array_size
         self.screenWidth, self.screenHeight = self.screen.get_size()
         self.rectWidth = self.screenWidth / self.arraySize
         self.array = [Rectangle(random.randint(1,self.screenHeight)) for i in range(self.arraySize)]
         self.endIndex, self.currentIndex = self.arraySize, 0
         self.comparisonCount, self.swapCount = 0, 0
 
-    def displayArray(self):
+    def display_array(self):
         for index, rect in enumerate(self.array):
             if rect.isBeingSorted:
                 color = (0, 255, 0)
@@ -41,30 +41,30 @@ class BubbleSorter:
             self.currentIndex, self.endIndex = 0, len(self.array)
             self.restart_array()
 
-    def loopThroughRectangles(self):
+    def loop_through_rectangles(self):
         if self.currentIndex >= self.endIndex - 1:
             self.array[self.currentIndex].isBeingSorted = False
             self.endIndex -= 1
             self.currentIndex = 0
 
-    def compareAndSwap(self):
+    def compare_and_swap(self):
         if self.array[self.currentIndex].height > self.array[self.currentIndex+1].height:
             self.swapCount += 1
             self.array[self.currentIndex], self.array[self.currentIndex+1] = self.array[self.currentIndex+1], self.array[self.currentIndex]
 
-    def sortArray(self):
+    def sort_array(self):
         # Keeps track of statistics related to sorting
         self.comparisonCount += 1
         # Update sort state of rectangle to active
         self.array[self.currentIndex].isBeingSorted = True
+        # Display the updated rectangle states
+        self.display_array()
         # Once the full array of rectangles is sorted exit the program
         self.checkDoneSorting()
         # Once the rectangle is fully sorted, return to the beginning and decrement the maximum index sorted
-        self.loopThroughRectangles()
+        self.loop_through_rectangles()
         # If the current rectangle height is larger than the next rectangle's height, they swap positions
-        self.compareAndSwap()
-        # Display the updated rectangle states
-        self.displayArray()
+        self.compare_and_swap()
         # Update sort status of rectangle to inactive
         self.array[self.currentIndex].isBeingSorted = False
         # Increment to next rectangle comparison
@@ -77,7 +77,6 @@ class BubbleSorter:
         time.sleep(2)
         self.array = [Rectangle(random.randint(1,self.screenHeight)) for i in range(self.arraySize)]
 
-
 def main(rectangle_number):
     pygame.init()
     screen = pygame.display.set_mode((600, 600))
@@ -89,7 +88,7 @@ def main(rectangle_number):
             if event.type == pygame.QUIT:
                 running = False
         screen.fill("purple")
-        bubbleSorter.sortArray()
+        bubbleSorter.sort_array()
         bubbleSorter.display_statistics()
         pygame.display.flip()
         clock.tick(5)  # limits FPS to 60
