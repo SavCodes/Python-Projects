@@ -18,6 +18,8 @@ class InsertionSorter:
         self.array = [Rectangle(random.randint(1,self.screenHeight)) for i in range(self.arraySize)]
         self.resumeIndex, self.currentIndex = 1, 1
         self.comparisonCount, self.swapCount = 0, 0
+        self.display_array()
+        self.array[0].isSorted = True
 
     def display_array(self):
         for index, rect in enumerate(self.array):
@@ -41,16 +43,18 @@ class InsertionSorter:
     def loop_through_rectangles(self):
         if self.currentIndex == 0:
             self.array[self.currentIndex].isBeingSorted = False
+            self.array[self.currentIndex].isSorted = True
             self.resumeIndex += 1
             self.currentIndex = self.resumeIndex
 
     def compare_and_swap(self):
         if self.array[self.currentIndex].height < self.array[self.currentIndex-1].height:
+            self.array[self.currentIndex], self.array[self.currentIndex-1] = self.array[self.currentIndex-1], self.array[self.currentIndex]
+            self.array[self.currentIndex-1].isBeingSorted = True
             self.array[self.currentIndex].isBeingSorted = False
             self.swapCount += 1
-            self.array[self.currentIndex], self.array[self.currentIndex-1] = self.array[self.currentIndex-1], self.array[self.currentIndex]
             self.currentIndex -= 1
-            self.array[self.currentIndex].isBeingSorted = True
+
         else:
             self.array[self.currentIndex].isSorted = True
             self.array[self.currentIndex].isBeingSorted = False
@@ -59,16 +63,17 @@ class InsertionSorter:
 
 
     def sort_array(self):
+        # Display the updated rectangle states
+        self.display_array()
         # Once the full array of rectangles is sorted exit the program
         self.check_done_sorting()
         # Keeps track of statistics related to sorting
         self.comparisonCount += 1
-        # Display the updated rectangle states
-        self.display_array()
         # Once the rectangle is fully sorted, return to the beginning and decrement the maximum index sorted
         self.loop_through_rectangles()
         # If the current rectangle height is larger than the next rectangle's height, they swap positions
         self.compare_and_swap()
+
 
     def display_statistics(self):
         # Sets font and font size for all text displayed to screen
@@ -99,7 +104,7 @@ class InsertionSorter:
         self.array = [Rectangle(random.randint(1,self.screenHeight)) for i in range(self.arraySize)]
 
 class Clock:
-    def __init__(self, tick_speed=1):
+    def __init__(self, tick_speed=5):
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode((600, 600))
         self.current_time = 0
