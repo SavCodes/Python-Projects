@@ -41,35 +41,34 @@ class InsertionSorter:
     def loop_through_rectangles(self):
         if self.currentIndex == 0:
             self.array[self.currentIndex].isBeingSorted = False
-            self.array[self.currentIndex].isSorted = True
             self.resumeIndex += 1
             self.currentIndex = self.resumeIndex
 
     def compare_and_swap(self):
         if self.array[self.currentIndex].height < self.array[self.currentIndex-1].height:
+            self.array[self.currentIndex].isBeingSorted = False
             self.swapCount += 1
             self.array[self.currentIndex], self.array[self.currentIndex-1] = self.array[self.currentIndex-1], self.array[self.currentIndex]
             self.currentIndex -= 1
+            self.array[self.currentIndex].isBeingSorted = True
         else:
-            self.currentIndex += 1
+            self.array[self.currentIndex].isSorted = True
+            self.array[self.currentIndex].isBeingSorted = False
+            self.resumeIndex += 1
+            self.currentIndex = self.resumeIndex
+
 
     def sort_array(self):
         # Once the full array of rectangles is sorted exit the program
         self.check_done_sorting()
         # Keeps track of statistics related to sorting
         self.comparisonCount += 1
-        # Update sort state of rectangle to active
-        self.array[self.currentIndex].isBeingSorted = True
         # Display the updated rectangle states
         self.display_array()
         # Once the rectangle is fully sorted, return to the beginning and decrement the maximum index sorted
         self.loop_through_rectangles()
         # If the current rectangle height is larger than the next rectangle's height, they swap positions
         self.compare_and_swap()
-        # Update sort status of rectangle to inactive
-        self.array[self.currentIndex].isBeingSorted = False
-        # Increment to next rectangle comparison
-        #self.currentIndex += 1
 
     def display_statistics(self):
         # Sets font and font size for all text displayed to screen
@@ -100,7 +99,7 @@ class InsertionSorter:
         self.array = [Rectangle(random.randint(1,self.screenHeight)) for i in range(self.arraySize)]
 
 class Clock:
-    def __init__(self, tick_speed=300):
+    def __init__(self, tick_speed=1):
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode((600, 600))
         self.current_time = 0
