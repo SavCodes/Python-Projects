@@ -1,6 +1,6 @@
 import pygame
 import random
-import time
+import time as time
 
 class Rectangle:
     def __init__(self, height):
@@ -8,7 +8,10 @@ class Rectangle:
         self.isBeingSorted = False
         self.isSorted = False
 
-class InsertionSorter:
+    def __repr__(self):
+        return str(self.height)
+
+class MergeSorter:
     def __init__(self, array_size):
         self.clock = Clock()
         self.screen = pygame.display.set_mode((600, 600))
@@ -59,6 +62,32 @@ class InsertionSorter:
             self.array[self.currentIndex].isBeingSorted = False
             self.resumeIndex += 1
             self.currentIndex = self.resumeIndex
+
+    def merge_sort(self, array):
+        array_size = len(array)
+        if array_size == 1:
+            return array
+        while array_size > 1:
+            split_index = array_size // 2
+            left_array = array[:split_index]
+            right_array = array[split_index:]
+            return self.merge(self.merge_sort(left_array), self.merge_sort(right_array))
+
+    def merge(self, left_array, right_array):
+        answer_array = []
+        while len(left_array) > 0 and len(right_array) > 0:
+            if left_array[0].height < right_array[0].height:
+                answer_array.append(left_array.pop(0))
+            else:
+                answer_array.append(right_array.pop(0))
+
+        if left_array:
+            answer_array += left_array
+        elif right_array:
+            answer_array += right_array
+        print(answer_array)
+        return answer_array
+
 
     def sort_array(self):
         # Display the updated rectangle states
@@ -137,17 +166,20 @@ def initialize_pygame():
 def main(rectangle_number):
     running = True
     screen= initialize_pygame()
-    insertion_sorter = InsertionSorter(rectangle_number)
+    merge_sorter = MergeSorter(rectangle_number)
     while running:
         running = event_checker()
-        insertion_sorter.screen.fill((50, 50, 50))
-        insertion_sorter.sort_array()
-        insertion_sorter.display_statistics()
-        insertion_sorter.clock.update()
-        insertion_sorter.clock.display()
+        merge_sorter.screen.fill((50, 50, 50))
+        merge_sorter.sort_array()
+        merge_sorter.display_statistics()
+        merge_sorter.clock.update()
+        merge_sorter.clock.display()
         pygame.display.flip()
-
     pygame.quit()
 
-if __name__ == '__main__':
-    main(rectangle_number=100)
+# if __name__ == '__main__':
+#     main(rectangle_number=100)
+
+pygame.init()
+mergeSorter = MergeSorter(10)
+mergeSorter.merge_sort(mergeSorter.array)
