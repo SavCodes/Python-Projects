@@ -9,6 +9,7 @@ class Rectangle:
     def __init__(self, height):
         self.height = height
         self.isBeingSorted = False
+        self.isSorted = False
 
 class BubbleSorter:
     def __init__(self, array_size):
@@ -24,6 +25,8 @@ class BubbleSorter:
     def display_array(self):
         for index, rect in enumerate(self.array):
             if rect.isBeingSorted:
+                color = (255, 00, 0)
+            elif rect.isSorted:
                 color = (0, 255, 0)
             else:
                 color = (255,255,255)
@@ -40,6 +43,7 @@ class BubbleSorter:
     def loop_through_rectangles(self):
         if self.currentIndex >= self.endIndex - 1:
             self.array[self.currentIndex].isBeingSorted = False
+            self.array[self.currentIndex].isSorted = True
             self.endIndex -= 1
             self.currentIndex = 0
 
@@ -71,7 +75,7 @@ class BubbleSorter:
         text_size = 25
         font = pygame.font.Font(None, text_size)
         # Generate the title text
-        title_text = font.render("Bubble Sorter", True, (0, 0, 0))
+        title_text = font.render("Bubble Sort Visualization", True, (0, 0, 0))
         title_text_pos = title_text.get_rect(centerx=self.arraySize/2 * self.rectWidth)
         # Generates the running total of comparisons performed while sorting
         array_size_text = font.render(f"Array Size: {self.arraySize}" , True, (10, 10, 10))
