@@ -2,13 +2,16 @@ import pygame
 import random
 import time
 
+# TO DO LIST:
+# -Add a sound effect corresponding to the height of the rectangle
+
 class Rectangle:
     def __init__(self, height):
         self.height = height
         self.isBeingSorted = False
         self.isSorted = False
 
-class InsertionSorter:
+class BubbleSorter:
     def __init__(self, array_size):
         self.clock = Clock()
         self.screen = pygame.display.set_mode((600, 600))
@@ -16,10 +19,8 @@ class InsertionSorter:
         self.screenWidth, self.screenHeight = self.screen.get_size()
         self.rectWidth = self.screenWidth / self.arraySize
         self.array = [Rectangle(random.randint(1,self.screenHeight)) for i in range(self.arraySize)]
-        self.resumeIndex, self.currentIndex = 1, 1
+        self.endIndex, self.currentIndex = self.arraySize, 0
         self.comparisonCount, self.swapCount = 0, 0
-        self.display_array()
-        self.array[0].isSorted = True
 
     def display_array(self):
         for index, rect in enumerate(self.array):
@@ -35,52 +36,46 @@ class InsertionSorter:
             pygame.draw.rect(self.screen, color, rectangleDimensions, width=0)
 
     def check_done_sorting(self):
-        if self.resumeIndex > len(self.array) or self.currentIndex == len(self.array)-1:
-            print(self.resumeIndex, self.currentIndex)
-            self.currentIndex, self.resumeIndex = 1, 1
+        if self.endIndex == 0:
+            self.currentIndex, self.endIndex = 0, len(self.array)
             self.restart_array()
 
     def loop_through_rectangles(self):
-        if self.currentIndex == 0:
+        if self.currentIndex >= self.endIndex - 1:
             self.array[self.currentIndex].isBeingSorted = False
             self.array[self.currentIndex].isSorted = True
-            self.resumeIndex += 1
-            self.currentIndex = self.resumeIndex
+            self.endIndex -= 1
+            self.currentIndex = 0
 
     def compare_and_swap(self):
-        if self.array[self.currentIndex].height < self.array[self.currentIndex-1].height:
-            self.array[self.currentIndex], self.array[self.currentIndex-1] = self.array[self.currentIndex-1], self.array[self.currentIndex]
-            self.array[self.currentIndex-1].isBeingSorted = True
-            self.array[self.currentIndex].isBeingSorted = False
+        if self.array[self.currentIndex].height > self.array[self.currentIndex+1].height:
             self.swapCount += 1
-            self.currentIndex -= 1
-
-        else:
-            self.array[self.currentIndex].isSorted = True
-            self.array[self.currentIndex].isBeingSorted = False
-            self.resumeIndex += 1
-            self.currentIndex = self.resumeIndex
-
+            self.array[self.currentIndex], self.array[self.currentIndex+1] = self.array[self.currentIndex+1], self.array[self.currentIndex]
 
     def sort_array(self):
+        # Keeps track of statistics related to sorting
+        self.comparisonCount += 1
+        # Update sort state of rectangle to active
+        self.array[self.currentIndex].isBeingSorted = True
         # Display the updated rectangle states
         self.display_array()
         # Once the full array of rectangles is sorted exit the program
         self.check_done_sorting()
-        # Keeps track of statistics related to sorting
-        self.comparisonCount += 1
         # Once the rectangle is fully sorted, return to the beginning and decrement the maximum index sorted
         self.loop_through_rectangles()
         # If the current rectangle height is larger than the next rectangle's height, they swap positions
         self.compare_and_swap()
-
+        # Update sort status of rectangle to inactive
+        self.array[self.currentIndex].isBeingSorted = False
+        # Increment to next rectangle comparison
+        self.currentIndex += 1
 
     def display_statistics(self):
         # Sets font and font size for all text displayed to screen
         text_size = 25
         font = pygame.font.Font(None, text_size)
         # Generate the title text
-        title_text = font.render("Insertion Sort Visualization", True, (0, 0, 0))
+        title_text = font.render("Bubble Sort Visualization", True, (0, 0, 0))
         title_text_pos = title_text.get_rect(centerx=self.arraySize/2 * self.rectWidth)
         # Generates the running total of comparisons performed while sorting
         array_size_text = font.render(f"Array Size: {self.arraySize}" , True, (10, 10, 10))
@@ -104,7 +99,7 @@ class InsertionSorter:
         self.array = [Rectangle(random.randint(1,self.screenHeight)) for i in range(self.arraySize)]
 
 class Clock:
-    def __init__(self, tick_speed=5):
+    def __init__(self, tick_speed=300):
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode((600, 600))
         self.current_time = 0
@@ -131,22 +126,22 @@ def event_checker():
 
 def initialize_pygame():
     pygame.init()
-    pygame.display.set_caption("Insertion Sorter")
-    #pygame.display.set_icon(pygame.image.load('bubble.jfif'))
+    pygame.display.set_caption("Bubble Sorter")
+    pygame.display.set_icon(pygame.image.load('bubble.jfif'))
     screen = pygame.display.set_mode((600, 600))
     return screen
 
 def main(rectangle_number):
     running = True
     screen= initialize_pygame()
-    insertion_sorter = InsertionSorter(rectangle_number)
+    bubbleSorter = BubbleSorter(rectangle_number)
     while running:
         running = event_checker()
-        insertion_sorter.screen.fill((50, 50, 50))
-        insertion_sorter.sort_array()
-        insertion_sorter.display_statistics()
-        insertion_sorter.clock.update()
-        insertion_sorter.clock.display()
+        bubbleSorter.screen.fill((50, 50, 50))
+        bubbleSorter.sort_array()
+        bubbleSorter.display_statistics()
+        bubbleSorter.clock.update()
+        bubbleSorter.clock.display()
         pygame.display.flip()
 
     pygame.quit()
