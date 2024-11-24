@@ -1,6 +1,9 @@
 import pygame
 import random
 
+# TO DO LIST:
+# -Add padding to game board to reduce the logic needed in find_neighbors class method
+
 class GameBoard:
     def __init__(self, board_size):
         self.board_size = board_size
