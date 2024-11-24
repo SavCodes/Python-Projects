@@ -160,7 +160,6 @@ def initialize_game_board(game_size):
     game_board.find_neighbors()
     game_board.draw_cells()
     game_board.update_cell_states()
-    game_board.set_cell_size()
     return game_board
 
 def main(game_size):
