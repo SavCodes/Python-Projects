@@ -93,15 +93,36 @@ class GameBoard:
                                       self.cell_states[cell.y_position - 1][cell.x_position - 1], # Top Left Cell
                                       ]
 
+    def update_cell_states(self):
+        for row in self.cell_states:
+            for cell in row:
+                cell.live_neighbor_count = sum(1 for neighbor in cell.neighbors if neighbor.is_alive)
+
+                # Logic for handling living cells
+                if cell.is_alive:
+                    # Rule 1: If a cell has less than two neighbors it dies as if by underpopulation
+                    if cell.live_neighbor_count < 2:
+                        cell.is_alive = False
+                    # Rule 2: Any cell with two or three neighbors lives on to the next generation
+                    elif 2 <= cell.live_neighbor_count <= 3:
+                        pass
+                    # Rule 3: Any live cell with more than three live neighbours dies, as if by overpopulation
+                    elif cell.live_neighbor_count > 3:
+                        cell.is_alive = False
+                else:
+                    # Rule 4: Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction
+                    if cell.live_neighbor_count == 3:
+                        cell.is_alive = True
 
 class Cell:
     def __init__(self, x, y):
         self.x_position = x
         self.y_position = y
-        self.is_alive = True
+        self.is_alive = False
         self.color = "black"
         self.width = 1
         self.neighbors = list()
+        self.live_neighbor_count = 0
 
     def __repr__(self):
         return f"Cell({self.x_position}, {self.y_position})"
@@ -122,6 +143,7 @@ def main():
     game_board: GameBoard = GameBoard(10)
     game_board.set_cell_size()
     game_board.draw_cells()
+    game_board.update_cell_states()
     running = True
     while running:
         running = event_checker()
