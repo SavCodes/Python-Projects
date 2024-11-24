@@ -23,6 +23,35 @@ class GameBoard:
             for cell in row:
                 cell.width = self.screen_width / self.board_size
 
+    def find_neighbors(self)
+        for row in self.cell_states:
+            for cell in row:
+                # Assigns neighbors for non-edge cases
+                if 0 < cell.x_position < len(self.cell_states) - 1 and 0 < cell.y_position < len(self.cell_states) - 1:
+                    cell.neighbors = [self.cell_states[cell.y_position][cell.x_position + 1], # Right Cell
+                                      self.cell_states[cell.y_position][cell.x_position - 1], # Left Cell
+                                      self.cell_states[cell.y_position - 1][cell.x_position], # Top Cell
+                                      self.cell_states[cell.y_position + 1][cell.x_position], # Bottom Cell
+                                      self.cell_states[cell.y_position + 1][cell.x_position + 1], # Bottom Right Cell
+                                      self.cell_states[cell.y_position + 1][cell.x_position - 1], # Bottom Left Cell
+                                      self.cell_states[cell.y_position - 1][cell.x_position + 1], # Top Right Cell
+                                      self.cell_states[cell.y_position - 1][cell.x_position - 1], # Top Left Cell
+                                      ]
+                elif cell.x_position == 0:
+                    cell.neighbors = [self.cell_states[cell.y_position - 1][cell.x_position], # Top Cell
+                                      self.cell_states[cell.y_position][cell.x_position + 1], # Right Cell
+                                      self.cell_states[cell.y_position + 1][cell.x_position], # Bottom Cell
+                                      self.cell_states[cell.y_position + 1][cell.x_position + 1], # Bottom Right Cell
+                                      self.cell_states[cell.y_position - 1][cell.x_position + 1]] # Top Right Cell
+
+                elif cell.x_position == len(self.cell_states) - 1:
+                    cell.neighbors = [self.cell_states[cell.y_position][cell.x_position - 1], # Left Cell
+                                      self.cell_states[cell.y_position - 1][cell.x_position], # Top Cell
+                                      self.cell_states[cell.y_position + 1][cell.x_position], # Bottom Cell
+                                      self.cell_states[cell.y_position + 1][cell.x_position - 1], # Bottom Left Cell
+                                      self.cell_states[cell.y_position - 1][cell.x_position - 1]] # Top Left Cell
+
+
 class Cell:
     def __init__(self, x, y):
         self.x_position = x
@@ -47,15 +76,16 @@ def initialize_pygame():
     pygame.display.set_caption("Game of Life")
 
 def main():
-    gameBoard: GameBoard = GameBoard(10)
-    gameBoard.set_cell_size()
-    gameBoard.draw_cells()
-    running = True
     initialize_pygame()
+    game_board: GameBoard = GameBoard(10)
+    game_board.set_cell_size()
+    game_board.draw_cells()
+    running = True
     while running:
         running = event_checker()
         pygame.display.update()
-        gameBoard.screen.fill((0, 0, 0))
+        game_board.screen.fill((0, 0, 0))
+        game_board.draw_cells()
     pygame.quit()
 
 if __name__ == "__main__":
