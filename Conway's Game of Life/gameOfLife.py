@@ -1,9 +1,6 @@
 import pygame
 import random
 
-# TO DO LIST:
-# -Add padding to game board to reduce the logic needed in find_neighbors class method
-
 class GameBoard:
     def __init__(self, board_size):
         self.board_size = board_size
@@ -115,7 +112,8 @@ class GameBoard:
 
     def update_cell_states(self):
         # Creates a copy of the current board state to update alive status for each cell
-        next_generation = [[Cell(cell.x_position, cell.y_position, cell.is_alive, cell.neighbors) for cell in row] for row in self.cell_states]
+        self.find_neighbors()
+        next_generation = [[Cell(cell.x_position, cell.y_position, cell.is_alive, neighbors=cell.neighbors) for cell in row] for row in self.cell_states]
 
         # Accesses each cell in both the next generation and current generation
         for current_gen_row, next_gen_row in zip(self.cell_states, next_generation):
@@ -130,8 +128,8 @@ class GameBoard:
                 else:
                     self.update_dead_cells(current_gen_cell, next_gen_cell)
 
+        # Update the current generation to the next generation
         self.cell_states = next_generation
-        self.find_neighbors()
 
     def randomly_spawn(self, spawn_percentage=50):
         for row in self.cell_states:
@@ -140,7 +138,7 @@ class GameBoard:
                     cell.is_alive = True
 
 class Cell:
-    def __init__(self, x, y, is_alive=False, neighbors=[]):
+    def __init__(self, x, y, is_alive=False, neighbors=None):
         self.x_position = x
         self.y_position = y
         self.is_alive = is_alive
@@ -173,9 +171,12 @@ def initialize_game_board(game_size):
     return game_board
 
 def main(game_size):
+    # Initialize required objects
     initialize_pygame()
     game_board = initialize_game_board(game_size)
     clock = pygame.time.Clock()
+
+    # Run main game loop
     running = True
     while running:
         running = event_checker(game_board)
