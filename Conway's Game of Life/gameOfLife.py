@@ -17,6 +17,7 @@ class GameBoard:
         self.set_cell_size()
 
     def draw_cells(self):
+        self.screen.fill((0, 0, 0))
         for row in self.cell_states:
             for cell in row:
                 cell.color = "white" if cell.is_alive else "black"
@@ -152,25 +153,28 @@ def event_checker(game_board):
 
 def initialize_pygame():
     pygame.init()
-    pygame.display.set_caption("Game of Life")
+    pygame.display.set_caption("Game of Life: Press Spacebar to Randomize Board")
 
-def main(game_size):
-    initialize_pygame()
+def initialize_game_board(game_size):
     game_board: GameBoard = GameBoard(game_size)
     game_board.find_neighbors()
     game_board.draw_cells()
     game_board.update_cell_states()
     game_board.set_cell_size()
+    return game_board
+
+def main(game_size):
+    initialize_pygame()
+    game_board = initialize_game_board(game_size)
     clock = pygame.time.Clock()
     running = True
     while running:
         running = event_checker(game_board)
         game_board.draw_cells()
         pygame.display.update()
-        game_board.screen.fill((0, 0, 0))
         game_board.update_cell_states()
         game_board.set_cell_size()
-        clock.tick(1)
+        clock.tick(15)
     pygame.quit()
 
 if __name__ == "__main__":
