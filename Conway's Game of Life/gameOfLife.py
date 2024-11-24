@@ -1,9 +1,5 @@
 import pygame
 import random
-import copy
-import sys
-import time
-
 
 class GameBoard:
     def __init__(self, board_size):
@@ -109,6 +105,11 @@ class GameBoard:
         elif current_gen_cell.live_neighbor_count > 3:
             next_gen_cell.is_alive = False
 
+    def update_dead_cells(self, current_gen_cell, next_gen_cell):
+        # Rule 4: Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction
+        if current_gen_cell.live_neighbor_count == 3:
+            next_gen_cell.is_alive = True
+
     def update_cell_states(self):
         # Creates a copy of the current board state to update alive status for each cell
         next_generation = [[Cell(cell.x_position, cell.y_position, cell.is_alive, cell.neighbors) for cell in row] for row in self.cell_states]
@@ -120,14 +121,12 @@ class GameBoard:
                 # Find the total number of living neighbors
                 current_gen_cell.live_neighbor_count = sum(1 for neighbor in current_gen_cell.neighbors if neighbor.is_alive)
 
-                # Logic for handling living cells
+                # Update cells in next generation based on game rules:
                 if current_gen_cell.is_alive:
                     self.update_living_cells(current_gen_cell, next_gen_cell)
-                    
                 else:
-                    # Rule 4: Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction
-                    if current_gen_cell.live_neighbor_count == 3:
-                        next_gen_cell.is_alive = True
+                    self.update_dead_cells(current_gen_cell, next_gen_cell)
+
         self.cell_states = next_generation
         self.find_neighbors()
 
