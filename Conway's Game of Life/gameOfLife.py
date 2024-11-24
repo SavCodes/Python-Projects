@@ -10,6 +10,7 @@ class GameBoard:
         self.cell_states = [[Cell(i,j) for i in range(self.board_size)] for j in range(self.board_size)]
         # Sets the cell width for display based on the board size
         self.set_cell_size()
+        self.find_neighbors()
 
     def draw_cells(self):
         for row in self.cell_states:
@@ -23,7 +24,7 @@ class GameBoard:
             for cell in row:
                 cell.width = self.screen_width / self.board_size
 
-    def find_neighbors(self)
+    def find_neighbors(self):
         for row in self.cell_states:
             for cell in row:
                 # Assigns neighbors for non-edge cases
@@ -37,19 +38,60 @@ class GameBoard:
                                       self.cell_states[cell.y_position - 1][cell.x_position + 1], # Top Right Cell
                                       self.cell_states[cell.y_position - 1][cell.x_position - 1], # Top Left Cell
                                       ]
+                # Assigns neighbors for top left edge cases
+                elif cell.x_position == 0 and cell.y_position == 0:
+                    cell.neighbors = [self.cell_states[cell.y_position][cell.x_position + 1], # Right Cell
+                                      self.cell_states[cell.y_position + 1][cell.x_position], # Bottom Cell
+                                      self.cell_states[cell.y_position + 1][cell.x_position + 1], # Bottom Right Cell
+                                      ]
+                # Assigns neighbors for top right edge cases
+                elif cell.x_position == len(self.cell_states) - 1 and cell.y_position == 0:
+                    cell.neighbors = [self.cell_states[cell.y_position][cell.x_position - 1], # Left Cell
+                                      self.cell_states[cell.y_position + 1][cell.x_position], # Bottom Cell
+                                      self.cell_states[cell.y_position + 1][cell.x_position - 1], # Bottom Left Cell
+                                      ]
+                # Assigns neighbors for bottom left edge cases
+                elif cell.x_position == 0 and cell.y_position == len(self.cell_states) - 1:
+                    cell.neighbors = [self.cell_states[cell.y_position][cell.x_position + 1], # Right Cell
+                                      self.cell_states[cell.y_position - 1][cell.x_position], # Top Cell
+                                      self.cell_states[cell.y_position - 1][cell.x_position + 1], # Top Right Cell
+                                      ]
+                # Assigns neighbors for bottom right edge cases
+                elif cell.x_position == len(self.cell_states) - 1 and cell.y_position == len(self.cell_states) - 1:
+                    cell.neighbors = [self.cell_states[cell.y_position][cell.x_position - 1], # Left Cell
+                                      self.cell_states[cell.y_position - 1][cell.x_position], # Top Cell
+                                      self.cell_states[cell.y_position - 1][cell.x_position - 1], # Top Left Cell
+                                      ]
+                # Assigns neighbors for left wall edge cases
                 elif cell.x_position == 0:
                     cell.neighbors = [self.cell_states[cell.y_position - 1][cell.x_position], # Top Cell
                                       self.cell_states[cell.y_position][cell.x_position + 1], # Right Cell
                                       self.cell_states[cell.y_position + 1][cell.x_position], # Bottom Cell
                                       self.cell_states[cell.y_position + 1][cell.x_position + 1], # Bottom Right Cell
                                       self.cell_states[cell.y_position - 1][cell.x_position + 1]] # Top Right Cell
-
+                # Assigns neighbors for right wall edge cases
                 elif cell.x_position == len(self.cell_states) - 1:
                     cell.neighbors = [self.cell_states[cell.y_position][cell.x_position - 1], # Left Cell
                                       self.cell_states[cell.y_position - 1][cell.x_position], # Top Cell
                                       self.cell_states[cell.y_position + 1][cell.x_position], # Bottom Cell
                                       self.cell_states[cell.y_position + 1][cell.x_position - 1], # Bottom Left Cell
                                       self.cell_states[cell.y_position - 1][cell.x_position - 1]] # Top Left Cell
+                # Assigns neighbors for top wall edge cases
+                elif cell.y_position == 0:
+                    cell.neighbors = [self.cell_states[cell.y_position][cell.x_position + 1], # Right Cell
+                                      self.cell_states[cell.y_position][cell.x_position - 1], # Left Cell
+                                      self.cell_states[cell.y_position + 1][cell.x_position], # Bottom Cell
+                                      self.cell_states[cell.y_position + 1][cell.x_position + 1], # Bottom Right Cell
+                                      self.cell_states[cell.y_position + 1][cell.x_position - 1], # Bottom Left Cell
+                                      ]
+                # Assigns neighbors for bottom wall edge cases
+                elif cell.y_position == len(self.cell_states) - 1:
+                    cell.neighbors = [self.cell_states[cell.y_position][cell.x_position + 1], # Right Cell
+                                      self.cell_states[cell.y_position][cell.x_position - 1], # Left Cell
+                                      self.cell_states[cell.y_position - 1][cell.x_position], # Top Cell
+                                      self.cell_states[cell.y_position - 1][cell.x_position + 1], # Top Right Cell
+                                      self.cell_states[cell.y_position - 1][cell.x_position - 1], # Top Left Cell
+                                      ]
 
 
 class Cell:
