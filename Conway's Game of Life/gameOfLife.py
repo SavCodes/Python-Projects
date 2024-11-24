@@ -1,16 +1,20 @@
 import pygame
+import random
+import copy
+import sys
+import time
+
 
 class GameBoard:
     def __init__(self, board_size):
         self.board_size = board_size
         # Creates the screen to display the game
         self.screen = pygame.display.set_mode((600, 600))
+        # Grabs screen height and screen width from display
         self.screen_width, self.screen_height = pygame.display.get_window_size()
         # Creates a 2D array containing cells that track their individual states
         self.cell_states = [[Cell(i,j) for i in range(self.board_size)] for j in range(self.board_size)]
-        # Sets the cell width for display based on the board size
         self.set_cell_size()
-        self.find_neighbors()
 
     def draw_cells(self):
         for row in self.cell_states:
@@ -21,7 +25,7 @@ class GameBoard:
 
     def set_cell_size(self):
         for row in self.cell_states:
-            for cell in row:
+             for cell in row:
                 cell.width = self.screen_width / self.board_size
 
     def find_neighbors(self):
@@ -94,63 +98,80 @@ class GameBoard:
                                       ]
 
     def update_cell_states(self):
-        for row in self.cell_states:
-            for cell in row:
-                cell.live_neighbor_count = sum(1 for neighbor in cell.neighbors if neighbor.is_alive)
-
+        next_generation = [[Cell(cell.x_position, cell.y_position) for cell in row] for row in self.cell_states]
+        for current_gen_row, next_gen_row in zip(self.cell_states, next_generation):
+            for current_gen_cell, next_gen_cell in zip(current_gen_row, next_gen_row):
+                next_gen_cell.neighbors = current_gen_cell.neighbors
+                current_gen_cell.live_neighbor_count = sum(1 for neighbor in current_gen_cell.neighbors if neighbor.is_alive)
                 # Logic for handling living cells
-                if cell.is_alive:
+                if current_gen_cell.is_alive:
+                    next_gen_cell.is_alive = True
                     # Rule 1: If a cell has less than two neighbors it dies as if by underpopulation
-                    if cell.live_neighbor_count < 2:
-                        cell.is_alive = False
+                    if current_gen_cell.live_neighbor_count < 2:
+                        next_gen_cell.is_alive = False
                     # Rule 2: Any cell with two or three neighbors lives on to the next generation
-                    elif 2 <= cell.live_neighbor_count <= 3:
-                        pass
+                    elif 2 <= current_gen_cell.live_neighbor_count <= 3:
+                        next_gen_cell.is_alive = True
                     # Rule 3: Any live cell with more than three live neighbours dies, as if by overpopulation
-                    elif cell.live_neighbor_count > 3:
-                        cell.is_alive = False
+                    elif current_gen_cell.live_neighbor_count > 3:
+                        next_gen_cell.is_alive = False
                 else:
                     # Rule 4: Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction
-                    if cell.live_neighbor_count == 3:
-                        cell.is_alive = True
+                    if current_gen_cell.live_neighbor_count == 3:
+                        next_gen_cell.is_alive = True
+        self.cell_states = next_generation
+        self.find_neighbors()
+
+    def randomly_spawn(self, spawn_percentage=50):
+        for row in self.cell_states:
+            for cell in row:
+                if random.randint(0, 100) > spawn_percentage:
+                    cell.is_alive = True
 
 class Cell:
-    def __init__(self, x, y):
+    def __init__(self, x, y, is_alive=False):
         self.x_position = x
         self.y_position = y
-        self.is_alive = False
+        self.is_alive = is_alive
         self.color = "black"
         self.width = 1
         self.neighbors = list()
         self.live_neighbor_count = 0
 
     def __repr__(self):
-        return f"Cell({self.x_position}, {self.y_position})"
+        return f"Cell({self.x_position}, {self.y_position}, {self.is_alive})"
 
-def event_checker():
+def event_checker(game_board):
     events = pygame.event.get()
     for event in events:
         if event.type == pygame.QUIT:
             return False
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+            game_board.randomly_spawn()
     return True
 
 def initialize_pygame():
     pygame.init()
     pygame.display.set_caption("Game of Life")
 
-def main():
+def main(game_size):
     initialize_pygame()
-    game_board: GameBoard = GameBoard(10)
-    game_board.set_cell_size()
+    game_board: GameBoard = GameBoard(game_size)
+    game_board.find_neighbors()
     game_board.draw_cells()
     game_board.update_cell_states()
+    game_board.set_cell_size()
+    clock = pygame.time.Clock()
     running = True
     while running:
-        running = event_checker()
+        running = event_checker(game_board)
+        game_board.draw_cells()
         pygame.display.update()
         game_board.screen.fill((0, 0, 0))
-        game_board.draw_cells()
+        game_board.update_cell_states()
+        game_board.set_cell_size()
+        clock.tick(1)
     pygame.quit()
 
 if __name__ == "__main__":
-    main()
+    main(50)
