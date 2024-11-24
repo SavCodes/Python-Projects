@@ -98,24 +98,32 @@ class GameBoard:
                                       self.cell_states[cell.y_position - 1][cell.x_position - 1], # Top Left Cell
                                       ]
 
+    def update_living_cells(self, current_gen_cell, next_gen_cell):
+        # Rule 1: If a cell has less than two neighbors it dies as if by underpopulation
+        if current_gen_cell.live_neighbor_count < 2:
+            next_gen_cell.is_alive = False
+        # Rule 2: Any cell with two or three neighbors lives on to the next generation
+        elif 2 <= current_gen_cell.live_neighbor_count <= 3:
+            next_gen_cell.is_alive = True
+        # Rule 3: Any live cell with more than three live neighbours dies, as if by overpopulation
+        elif current_gen_cell.live_neighbor_count > 3:
+            next_gen_cell.is_alive = False
+
     def update_cell_states(self):
-        next_generation = [[Cell(cell.x_position, cell.y_position) for cell in row] for row in self.cell_states]
+        # Creates a copy of the current board state to update alive status for each cell
+        next_generation = [[Cell(cell.x_position, cell.y_position, cell.is_alive, cell.neighbors) for cell in row] for row in self.cell_states]
+
+        # Accesses each cell in both the next generation and current generation
         for current_gen_row, next_gen_row in zip(self.cell_states, next_generation):
             for current_gen_cell, next_gen_cell in zip(current_gen_row, next_gen_row):
-                next_gen_cell.neighbors = current_gen_cell.neighbors
+
+                # Find the total number of living neighbors
                 current_gen_cell.live_neighbor_count = sum(1 for neighbor in current_gen_cell.neighbors if neighbor.is_alive)
+
                 # Logic for handling living cells
                 if current_gen_cell.is_alive:
-                    next_gen_cell.is_alive = True
-                    # Rule 1: If a cell has less than two neighbors it dies as if by underpopulation
-                    if current_gen_cell.live_neighbor_count < 2:
-                        next_gen_cell.is_alive = False
-                    # Rule 2: Any cell with two or three neighbors lives on to the next generation
-                    elif 2 <= current_gen_cell.live_neighbor_count <= 3:
-                        next_gen_cell.is_alive = True
-                    # Rule 3: Any live cell with more than three live neighbours dies, as if by overpopulation
-                    elif current_gen_cell.live_neighbor_count > 3:
-                        next_gen_cell.is_alive = False
+                    self.update_living_cells(current_gen_cell, next_gen_cell)
+                    
                 else:
                     # Rule 4: Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction
                     if current_gen_cell.live_neighbor_count == 3:
@@ -130,13 +138,13 @@ class GameBoard:
                     cell.is_alive = True
 
 class Cell:
-    def __init__(self, x, y, is_alive=False):
+    def __init__(self, x, y, is_alive=False, neighbors=[]):
         self.x_position = x
         self.y_position = y
         self.is_alive = is_alive
         self.color = "black"
         self.width = 1
-        self.neighbors = list()
+        self.neighbors = neighbors
         self.live_neighbor_count = 0
 
     def __repr__(self):
