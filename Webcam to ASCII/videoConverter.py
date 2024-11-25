@@ -42,29 +42,34 @@ def event_checker():
             return False
     return True
 
-# Load the video
-video = cv2.VideoCapture(0)
+def main():
+    # Load the video
+    video = cv2.VideoCapture(0)
 
-# Initialize pygame
-screen = initialize_pygame()
+    # Initialize pygame
+    screen = initialize_pygame()
 
-running = True
-while running:
-    # Check for input to close window
-    running = event_checker()
+    running = True
+    while running:
+        # Check for input to close window
+        running = event_checker()
 
-    # Read in video data and turn it to gray scale
-    ret, frame = video.read()
-    frame = cv2.resize(frame, (500, 500))
-    gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        # Read in video data and turn it to gray scale
+        ret, frame = video.read()
+        frame = cv2.resize(frame, (500, 500))
+        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    # Convert pixels to ascii character based on brightness value
-    ascii_image = [[map_brightness_to_ascii(pixel) for pixel in row] for row in gray_frame]
+        # Convert pixels to ascii character based on brightness value
+        ascii_image = [[map_brightness_to_ascii(pixel) for pixel in row] for row in gray_frame]
 
-    # Format image for display processing
-    formatted_image = format_ascii_image(ascii_image)
+        # Format image for display processing
+        formatted_image = format_ascii_image(ascii_image)
 
-    # Display formatted image via pygame
-    screen.fill((0, 0, 0))
-    display_image(formatted_image, screen)
-    pygame.display.update()
+        # Display formatted image via pygame
+        screen.fill((0, 0, 0))
+        display_image(formatted_image, screen)
+        pygame.display.update()
+    pygame.quit()
+
+if __name__ == "__main__":
+    main()
