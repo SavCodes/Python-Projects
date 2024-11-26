@@ -32,15 +32,24 @@ class Player:
 
         # Initialize player logic
         self.is_touching_ground = True
+        self.direction = 1
         self.max_jumps = 2
         self.jump_count = 0
 
     def display_player(self, screen):
         player_rect = (self.x_position, self.y_position, self.player_width, self.player_height)
-
+        self.animate_jump()
+        # If Running use run sprites
         if self.y_velocity == 0 and self.is_touching_ground:
-            # If Running use run sprites
-            screen.blit(self.run_sprites.frame_list[int(self.run_index)], player_rect)
+            # Face right if moving right
+            if self.direction > 0:
+                frame_to_display = self.run_sprites.frame_list[int(self.run_index)]
+            # Face left if moving left
+            elif self.direction < 0:
+                frame_to_display = pygame.transform.flip(self.run_sprites.frame_list[int(self.run_index)], True, False)
+
+            screen.blit(frame_to_display, player_rect)
+
         else:
             # If Jumping use jump sprites
             screen.blit(self.jump_sprite.frame_list[int(self.jump_index)], player_rect)
@@ -54,9 +63,11 @@ class Player:
     def get_player_movement(self, keys):
         if keys[pygame.K_LEFT]:
             self.x_velocity = -1
+            self.direction = -1
             self.animate_run()
         elif keys[pygame.K_RIGHT]:
             self.x_velocity = 1
+            self.direction = 1
             self.animate_run()
         else:
             self.x_velocity = 0
@@ -66,6 +77,7 @@ class Player:
             self.run_index += self.animation_speed
         else:
             self.run_index = 0
+
 
     def animate_jump(self):
         # Animate Rising Part of jump
