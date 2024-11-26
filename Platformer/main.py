@@ -33,6 +33,7 @@ class Player:
         self.y_velocity += self.y_acceleration
 
 
+
 def initialize_pygame():
     pygame.init()
 
@@ -43,20 +44,20 @@ def event_checker(player):
             return False
         keys = pygame.key.get_pressed()
 
-            # Move player based on pressed keys
+        # Move player based on pressed keys
         if keys[pygame.K_LEFT]:
-            player.x_velocity = -0.5
-        if keys[pygame.K_RIGHT]:
-            player.x_velocity = 0.5
-        if keys[pygame.K_UP]:
-            player.y_velocity = -0.5
-        if keys[pygame.K_DOWN]:
-            player.y_velocity = 0.5
+            player.x_velocity = -5
+        elif keys[pygame.K_RIGHT]:
+            player.x_velocity = 5
+        else:
+            player.x_velocity = 0
+
     return True
 
 def main():
     running = True
     player_one = Player()
+    clock = pygame.time.Clock()
     screen = pygame.display.set_mode((800, 600))
     while running:
         screen.fill((0, 0, 0))
@@ -67,6 +68,7 @@ def main():
         player_one.display_player()
 
         pygame.display.update()
+        clock.tick(60)
 
 if __name__ == '__main__':
     main()
