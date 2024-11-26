@@ -20,6 +20,10 @@ class Player:
         self.max_health = 100
         self.current_health = self.max_health
 
+        # Walking animation requirements
+        self.walk_sprites = spritesheet.SpriteSheet("Pink_Monster_Walk_6.png")
+        self.walk_index = 0
+
         # Running animation requirements
         self.run_sprites = spritesheet.SpriteSheet("Pink_Monster_Run_6.png")
         self.run_index = 0
@@ -27,6 +31,13 @@ class Player:
         # Jump animation requirements
         self.jump_sprites = spritesheet.SpriteSheet("Pink_Monster_Jump_8.png")
         self.jump_index = 0
+        self.max_jumps = 2
+        self.jump_count = 0
+        self.is_touching_ground = True
+
+        # Double jump animation requirements
+        self.double_jump_sprites = spritesheet.SpriteSheet("Double_Jump_Dust_5.png")
+        self.double_jump_index = 0
 
         # Attack animation requirements
         self.attack_sprites = spritesheet.SpriteSheet("Pink_Monster_Attack1_4.png")
@@ -49,15 +60,13 @@ class Player:
         self.y_acceleration = 0
 
         # Initialize player logic
-        self.is_touching_ground = True
         self.direction = 1
-        self.max_jumps = 2
-        self.jump_count = 0
 
     def display_player(self, screen):
         player_rect = (self.x_position, self.y_position, self.player_width, self.player_height)
         self.animate_idle()
         self.animate_jump()
+        self.animate_walk()
         self.animate_run()
         self.animate_attack()
         self.animate_death()
@@ -73,6 +82,10 @@ class Player:
         # If Standing use idle sprites
         elif self.x_velocity == 0 and self.is_touching_ground:
             frame_to_display = self.idle_sprites.frame_list[int(self.idle_index)]
+
+        # If Walking use walk sprites
+        elif self.y_velocity == 0 and self.is_touching_ground and abs(self.x_velocity) < 3:
+            frame_to_display = self.walk_sprites.frame_list[int(self.walk_index)]
 
         # If Running use run sprites
         elif self.y_velocity == 0 and self.is_touching_ground:
@@ -96,7 +109,15 @@ class Player:
         self.y_velocity += self.y_acceleration
 
     def get_player_movement(self, keys):
-        if keys[pygame.K_LEFT]:
+        if keys[pygame.K_1] and keys[pygame.K_LEFT]:
+            self.x_velocity = -3
+            self.direction = -1
+
+        elif keys[pygame.K_1] and keys[pygame.K_RIGHT]:
+            self.x_velocity = 3
+            self.direction = 1
+
+        elif keys[pygame.K_LEFT]:
             self.x_velocity = -1
             self.direction = -1
 
@@ -113,12 +134,17 @@ class Player:
         else:
             self.idle_index = 0
 
+    def animate_walk(self):
+        if self.walk_index <= self.walk_sprites.number_of_animations - 1:
+            self.walk_index += self.animation_speed
+        else:
+            self.walk_index = 0
+
     def animate_run(self):
-        if abs(self.x_velocity) != 0:
-            if self.run_index <= self.run_sprites.number_of_animations - 1:
-                self.run_index += self.animation_speed
-            else:
-                self.run_index = 0
+        if self.run_index < self.run_sprites.number_of_animations - 1:
+            self.run_index += self.animation_speed
+        else:
+            self.run_index = 0
 
     def animate_jump(self):
         # Reset jump animation if player touches the ground
@@ -132,6 +158,13 @@ class Player:
         # Animate falling part of jump
         elif self.y_velocity > 0 and self.jump_index < self.jump_sprites.number_of_animations - 2:
             self.jump_index += self.animation_speed
+
+    def animate_double_jump(self):
+        if self.jump_index == 2 and self.double_jump_index < self.double_jump_sprites.number_of_animations - 1:
+            self.double_jump_index += self.animation_speed
+
+        if self.double_jump_index == self.double_jump_sprites.number_of_animations:
+            pass
 
     def animate_death(self):
         if self.current_health == 0 and self.death_index < self.death_sprites.number_of_animations - 1:
