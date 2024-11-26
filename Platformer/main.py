@@ -18,6 +18,7 @@ def main():
     player_one = player.Player()
     clock = pygame.time.Clock()
     screen = pygame.display.set_mode((800, 600))
+    background = pygame.transform.scale(pygame.image.load("Battleground2.png"), (800,600))
     while running:
         running = event_checker(player_one)
 
@@ -28,7 +29,7 @@ def main():
 
 
         # Plyer Display
-        screen.fill((0, 0, 0))
+        screen.blit(background)
         player_one.display_player(screen)
         pygame.display.update()
         clock.tick(60)
