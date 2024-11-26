@@ -9,7 +9,8 @@ from pygame_widgets.textbox import TextBox
 # TO DO LIST:
 #      - Add grid pattern to board
 #      - Add an endless mode option
-#      - Add Highscore Leaderboard
+#      - Add Name functionality to Highscore Leaderboard
+#      - Add restart instructions when a game is lost
 
 class Cell:
     def __repr__(self):
@@ -239,7 +240,7 @@ def initialize_pygame(width, height):
 
     return screen
 
-def initialize_gamestates(screen, rows, cols):
+def initialize_gamestates(rows, cols):
     gamestates = [[Cell(i,j) for i in range(rows)] for j in range(cols)]
     return gamestates
 
@@ -309,7 +310,7 @@ def run_pause_menu(pause_menu):
 def main(ROWS, COLS):
     # Initialize Required Objects Start -------------------------------------------
     screen = initialize_pygame(600, 600)
-    gamestates = initialize_gamestates(screen, ROWS, COLS)
+    gamestates = initialize_gamestates(ROWS, COLS)
     pause_menu = PauseMenu(screen, gamestates)
     difficulty_slider, difficulty_output = initialize_difficulty_slider(screen)
     volume_slider, volume_output = initialize_volume_slider(screen)
