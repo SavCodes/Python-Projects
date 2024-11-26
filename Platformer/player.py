@@ -6,6 +6,10 @@ class Player:
         self.screen_width, self.screen_height = 800, 600
         self.animation_speed = 0.2
 
+        # Idle animation requirements
+        self.idle_sprites = spritesheet.SpriteSheet("Pink_Monster_Idle_4.png")
+        self.idle_index = 0
+
         # Running animation requirements
         self.run_sprites = spritesheet.SpriteSheet("Pink_Monster_Run_6.png")
         self.run_index = 0
@@ -38,10 +42,16 @@ class Player:
 
     def display_player(self, screen):
         player_rect = (self.x_position, self.y_position, self.player_width, self.player_height)
+        self.animate_idle()
         self.animate_jump()
+        self.animate_run()
+
+        # If Standing use idle sprites
+        if self.x_velocity == 0 and self.is_touching_ground:
+            frame_to_display = self.idle_sprites.frame_list[int(self.idle_index)]
 
         # If Running use run sprites
-        if self.y_velocity == 0 and self.is_touching_ground:
+        elif self.y_velocity == 0 and self.is_touching_ground:
             frame_to_display = self.run_sprites.frame_list[int(self.run_index)]
 
         # If Jumping use jump sprites
@@ -50,7 +60,7 @@ class Player:
 
         # Flip frame if needed depending on player direction
         if self.direction < 0:
-                frame_to_display = pygame.transform.flip(frame_to_display, True, False)
+            frame_to_display = pygame.transform.flip(frame_to_display, True, False)
 
 
         screen.blit(frame_to_display, player_rect)
@@ -65,19 +75,26 @@ class Player:
         if keys[pygame.K_LEFT]:
             self.x_velocity = -1
             self.direction = -1
-            self.animate_run()
+
         elif keys[pygame.K_RIGHT]:
             self.x_velocity = 1
             self.direction = 1
-            self.animate_run()
+
         else:
             self.x_velocity = 0
 
-    def animate_run(self):
-        if self.run_index <= self.run_sprites.number_of_animations - 1:
-            self.run_index += self.animation_speed
+    def animate_idle(self, dampener=0.5):
+        if self.x_velocity == 0 and self.idle_index < self.idle_sprites.number_of_animations - 1:
+            self.idle_index += self.animation_speed * dampener
         else:
-            self.run_index = 0
+            self.idle_index = 0
+
+    def animate_run(self):
+        if abs(self.x_velocity) != 0:
+            if self.run_index <= self.run_sprites.number_of_animations - 1:
+                self.run_index += self.animation_speed
+            else:
+                self.run_index = 0
 
     def animate_jump(self):
         # Reset jump animation if player touches the ground
