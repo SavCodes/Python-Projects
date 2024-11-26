@@ -10,7 +10,6 @@ from pygame_widgets.textbox import TextBox
 #      - Add grid pattern to board
 #      - Add an endless mode option
 #      - Add Name functionality to Highscore Leaderboard
-#      - Add restart instructions when a game is lost
 
 class Cell:
     def __repr__(self):
@@ -47,6 +46,7 @@ class Snake:
         self.lose_sound = pygame.mixer.Sound("game_over.wav")
         self.highscore_list = ["Highscores:"]
 
+    # SNAKE LOGIC METHODS START ----------------------------------------------------
     def get_move(self, event):
         if event.key == pygame.K_w or event.key == pygame.K_UP:
             self.move = [0, -1]
@@ -56,13 +56,11 @@ class Snake:
             self.move = [-1, 0]
         elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
             self.move = [1, 0]
-
     def moves(self):
         x_move, y_move = self.move
         new_head = [[self.body[0][0] + x_move, self.body[0][1] + y_move]]
         self.body = new_head + self.body[:-1]
         self.head_x, self.head_y = self.body[0]
-
     def grow(self):
         self.grow_sound.play()
         tail_x, tail_y = self.body[-1]
@@ -70,7 +68,6 @@ class Snake:
         new_tail_y = tail_y + (-self.move[1])
         self.body.append([new_tail_x, new_tail_y])
         self.length += 1
-
     def update_gamestates(self):
         for row in self.gamestates:
             for cell in row:
@@ -78,7 +75,6 @@ class Snake:
                     self.gamestates[cell.y][cell.x].is_empty = False
                 else:
                     self.gamestates[cell.y][cell.x].is_empty = True
-
     def check_collisions(self):
         # Checks for collision with walls ----------------------------------------------:
         if not 0 <= self.head_x <= self.cols -1 or not 0 <= self.head_y <= self.rows -1:
@@ -92,7 +88,6 @@ class Snake:
             self.lose_sound.play()
             self.highscore_list.append(self.length)
             self.restart_snake()
-
     def restart_snake(self):
         halted = True
         while halted:
@@ -112,13 +107,14 @@ class Snake:
                     elif event.key == pygame.K_n:
                         halted = False
                         sys.exit(f"GAME OVER! Final Score: {self.length}")
+    # SNAKE LOGIC METHODS END ------------------------------------------------------
 
-    def draws(self):
+    # SNAKE VISUALIZATION METHODS START --------------------------------------------
+    def display_snake(self):
         width = pygame.display.get_window_size()[0] // self.rows
         for segment in self.body:
             rect = (segment[0] * width, segment[1] * width, width, width)
             pygame.draw.rect(self.screen, "red", pygame.Rect(rect))
-
     def display_highscores(self):
         score_font = pygame.font.SysFont('Comic Sans MS', 30)
         self.highscore_list[1:] = sorted(self.highscore_list[1:], reverse=True)
@@ -129,18 +125,16 @@ class Snake:
             self.screen.blit(individual_score_text, individual_score_rect)
 
         pygame.display.update()
-
     def display_score(self):
         my_font = pygame.font.SysFont('Comic Sans MS', 30)
         text_surface = my_font.render(f"{self.length}", False, "red")
         self.screen.blit(text_surface, dest=(0, 0))
-
     def display_restart_instructions(self):
         restart_font = pygame.font.SysFont('Comic Sans MS', 30)
         restart_text = restart_font.render("Press `y` to restart or `n` to exit", False, "red")
         restart_rect = restart_text.get_rect(center=(self.screen_width // 2, self.screen_height * 0.80))
         self.screen.blit(restart_text, restart_rect)
-
+    # SNAKE VISUALIZATION METHODS END ----------------------------------------------
 
 class Food:
     def __init__(self, gamestates, screen):
@@ -233,6 +227,7 @@ class PauseMenu:
         self.screen.blit(mute_instruction_surface, mute_instruction_rect)
         # Display Mute Instructions End --------------------------------------------
 
+# INITIALIZATION FUNCTIONS START ------------------------------------------------------
 def initialize_pygame(width, height):
     pygame.init()
 
@@ -247,10 +242,25 @@ def initialize_pygame(width, height):
     pygame.mixer.music.play(-1)
 
     return screen
-
 def initialize_gamestates(rows, cols):
     gamestates = [[Cell(i,j) for i in range(rows)] for j in range(cols)]
     return gamestates
+def initialize_volume_slider(screen):
+    width, height = pygame.display.get_window_size()
+    txt_scl = 50
+    slider = Slider(screen, width // 4, int(height * 0.95), width//2, 20, min=1, max=100, step=1)
+    output = TextBox(screen, int(3.2 * width // 4), int(height * 0.95), txt_scl + 5, txt_scl // 2, fontSize=10)
+    output.disable()  # Act as label instead of textbox
+    return slider, output
+def initialize_difficulty_slider(screen):
+    width, height = pygame.display.get_window_size()
+    txt_scl = 50
+    slider = Slider(screen, width // 4, int(height * 0.88), width//2, 20, min=1, max=3, step=1)
+    #output = TextBox(screen, width // 2 - txt_scl // 2 , height - txt_scl // 2, txt_scl + 5, txt_scl//2, fontSize=10)
+    output = TextBox(screen, int(3.2 * width // 4), int(height * 0.88), txt_scl + 5, txt_scl // 2, fontSize=10)
+    output.disable()  # Act as label instead of textbox
+    return slider, output
+# INITIALIZATION FUNCTIONS END --------------------------------------------------------
 
 def event_checker(snake, is_paused, pause_menu):
     # Valid moves to change the direction of the snake
@@ -280,34 +290,11 @@ def event_checker(snake, is_paused, pause_menu):
                 pause_menu.is_music_paused = not pause_menu.is_music_paused
     pygame_widgets.update(events)
     return is_paused
-
-def initialize_difficulty_slider(screen):
-    width, height = pygame.display.get_window_size()
-    txt_scl = 50
-    slider = Slider(screen, width // 4, int(height * 0.88), width//2, 20, min=1, max=3, step=1)
-    #output = TextBox(screen, width // 2 - txt_scl // 2 , height - txt_scl // 2, txt_scl + 5, txt_scl//2, fontSize=10)
-    output = TextBox(screen, int(3.2 * width // 4), int(height * 0.88), txt_scl + 5, txt_scl // 2, fontSize=10)
-    output.disable()  # Act as label instead of textbox
-    return slider, output
-
-def draw_difficulty_slider(slider, output):
+def draw_sliders(difficulty_slider, difficulty_output, volume_slider, volume_output):
     events = pygame.event.get()
-    output.setText(f"Difficulty: {slider.getValue()}")
+    difficulty_output.setText(f"Difficulty: {difficulty_slider.getValue()}")
+    volume_output.setText(f"Volume: {volume_slider.getValue()}")
     pygame_widgets.update(events)
-
-def initialize_volume_slider(screen):
-    width, height = pygame.display.get_window_size()
-    txt_scl = 50
-    slider = Slider(screen, width // 4, int(height * 0.95), width//2, 20, min=1, max=100, step=1)
-    output = TextBox(screen, int(3.2 * width // 4), int(height * 0.95), txt_scl + 5, txt_scl // 2, fontSize=10)
-    output.disable()  # Act as label instead of textbox
-    return slider, output
-
-def draw_volume_slider(slider, output):
-    events = pygame.event.get()
-    output.setText(f"Volume: {slider.getValue()}")
-    pygame_widgets.update(events)
-
 def run_pause_menu(pause_menu):
     pause_menu.display_pause_title()
     pause_menu.display_pause_instructions()
@@ -316,17 +303,20 @@ def run_pause_menu(pause_menu):
     pygame.display.update()
 
 def main(ROWS, COLS):
-    # Initialize Required Objects Start -------------------------------------------
+    # Initialize Required Objects Start -----------------------------------------------
     screen = initialize_pygame(600, 600)
     gamestates = initialize_gamestates(ROWS, COLS)
-    pause_menu = PauseMenu(screen, gamestates)
+    
+    # Create volume and difficulty sliders
     difficulty_slider, difficulty_output = initialize_difficulty_slider(screen)
     volume_slider, volume_output = initialize_volume_slider(screen)
+    
+    # Create game objects
     clock = pygame.time.Clock()
     snake = Snake(screen, gamestates)
     food = Food(gamestates, screen)
-    is_paused = True
-    # Initialize Required Objects End ---------------------------------------------
+    pause_menu, is_paused = PauseMenu(screen, gamestates), True
+    # Initialize Required Objects End -------------------------------------------------
 
     while True:
         is_paused = event_checker(snake, is_paused, pause_menu)
@@ -341,15 +331,14 @@ def main(ROWS, COLS):
 
             # Display Handling Start --------------------------------------------------
             food.spawn_food(snake)
-            snake.draws()
+            snake.display_snake()
             snake.display_score()
             pygame.display.flip()
             clock.tick(difficulty_slider.getValue() * 5)
             # Display Handling End ----------------------------------------------------
         else:
             # Pause Menu Start --------------------------------------------------------
-            draw_difficulty_slider(difficulty_slider, difficulty_output)
-            draw_volume_slider(volume_slider, volume_output)
+            draw_sliders(difficulty_slider, difficulty_output, volume_slider, volume_output)
             pygame.mixer.music.set_volume(volume_slider.getValue()/100)
             run_pause_menu(pause_menu)
             # Pause Menu End ----------------------------------------------------------\
