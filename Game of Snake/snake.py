@@ -36,6 +36,7 @@ class Snake:
     def __init__(self, screen, gamestates):
         self.gamestates = gamestates
         self.screen = screen
+        self.screen_width, self.screen_height = self.screen.get_size()
         self.rows, self.cols = len(gamestates), len(gamestates[0])
         self.head_x, self.head_y = self.cols // 2, self.rows // 2
         self.body = [[self.head_x, self.head_y]]
@@ -43,6 +44,7 @@ class Snake:
         self.move = [-1,0]
         self.grow_sound = pygame.mixer.Sound("grow.wav")
         self.lose_sound = pygame.mixer.Sound("game_over.wav")
+        self.highscore_list = []
 
     def draws(self):
         width = pygame.display.get_window_size()[0] // self.rows
@@ -78,11 +80,13 @@ class Snake:
         # Checks for collision with walls ----------------------------------------------:
         if not 0 <= self.head_x <= self.cols -1 or not 0 <= self.head_y <= self.rows -1:
             self.lose_sound.play()
+            self.highscore_list.append(self.length)
             self.restart_snake()
 
         # Checks for collision with self -----------------------------------------------:
         elif [self.head_x, self.head_y] in self.body[1:]:
             self.lose_sound.play()
+            self.highscore_list.append(self.length)
             self.restart_snake()
 
     def display_score(self):
@@ -101,6 +105,7 @@ class Snake:
     def restart_snake(self):
         halted = True
         while halted:
+            self.display_highscores()
             events = pygame.event.get()
             for event in events:
                 if event.type == pygame.QUIT:
@@ -109,12 +114,27 @@ class Snake:
                     if event.key == pygame.K_y:
                         self.head_x = self.cols // 2
                         self.head_y = self.rows // 2
+                        self.highscore_list.append(self.length)
                         self.length = 0
                         self.body = [[self.head_x, self.head_y]]
                         halted = False
                     elif event.key == pygame.K_n:
                         halted = False
                         sys.exit(f"GAME OVER! Final Score: {self.length}")
+
+    def display_highscores(self):
+        score_font = pygame.font.SysFont('Comic Sans MS', 30)
+        score_text = score_font.render(f"High Scores:", False, "red")
+        score_rect = score_text.get_rect(center=(self.screen_width//2, self.screen_height//3))
+        self.screen.blit(score_text, score_rect)
+
+
+        for index, highscore in enumerate(self.highscore_list):
+            individual_score_text = score_font.render(str(highscore), False, "red")
+            individual_score_rect = individual_score_text.get_rect(center=(self.screen_width//2, self.screen_height//3 + ((index+1) * 30 )))
+            self.screen.blit(individual_score_text, individual_score_rect)
+
+        pygame.display.update()
 
 class Food:
     def __init__(self, gamestates, screen):
@@ -167,6 +187,7 @@ class PauseMenu:
         pause_surface = my_font.render(pause_text, True, "black")
         pause_rect = pause_surface.get_rect(center=(self.width // 2, self.height // 2 + 20* math.sin(self.bob_index / 100)))
         self.screen.blit(pause_surface, pause_rect)
+
         # Display "Game Pause!" End ------------------------------------------------
 
         # Title Bobbing Logic Start ------------------------------------------------
@@ -181,7 +202,7 @@ class PauseMenu:
         instructions_text = "Press Space to Pause/Unpause"
         instructions_size = self.width // 20
         my_font = pygame.font.SysFont('Comic Sans MS', instructions_size)
-        instruction_surface = my_font.render(instructions_text, True, "black")
+        instruction_surface = my_font.render(instructions_text, True, "white")
         instruction_rect = instruction_surface.get_rect(center=(self.width * 0.5, self.height * 0.7))
         self.screen.blit(instruction_surface, instruction_rect)
         # Display Pause Instructions End -------------------------------------------
