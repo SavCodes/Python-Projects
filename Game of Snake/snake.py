@@ -47,12 +47,6 @@ class Snake:
         self.lose_sound = pygame.mixer.Sound("game_over.wav")
         self.highscore_list = ["Highscores:"]
 
-    def draws(self):
-        width = pygame.display.get_window_size()[0] // self.rows
-        for segment in self.body:
-            rect = (segment[0] * width, segment[1] * width, width, width)
-            pygame.draw.rect(self.screen, "red", pygame.Rect(rect))
-
     def get_move(self, event):
         if event.key == pygame.K_w or event.key == pygame.K_UP:
             self.move = [0, -1]
@@ -68,7 +62,7 @@ class Snake:
         new_head = [[self.body[0][0] + x_move, self.body[0][1] + y_move]]
         self.body = new_head + self.body[:-1]
         self.head_x, self.head_y = self.body[0]
-
+    
     def grow(self):
         self.grow_sound.play()
         tail_x, tail_y = self.body[-1]
@@ -76,6 +70,14 @@ class Snake:
         new_tail_y = tail_y + (-self.move[1])
         self.body.append([new_tail_x, new_tail_y])
         self.length += 1
+    
+    def update_gamestates(self):
+        for row in self.gamestates:
+            for cell in row:
+                if [cell.x, cell.y] in self.body:
+                    self.gamestates[cell.y][cell.x].is_empty = False
+                else:
+                    self.gamestates[cell.y][cell.x].is_empty = True
 
     def check_collisions(self, screen):
         # Checks for collision with walls ----------------------------------------------:
@@ -90,24 +92,12 @@ class Snake:
             self.lose_sound.play()
             self.highscore_list.append(self.length)
             self.restart_snake()
-
-    def display_score(self):
-        my_font = pygame.font.SysFont('Comic Sans MS', 30)
-        text_surface = my_font.render(f"{self.length}", False, "red")
-        self.screen.blit(text_surface, dest=(0, 0))
-
-    def update_gamestates(self):
-        for row in self.gamestates:
-            for cell in row:
-                if [cell.x, cell.y] in self.body:
-                    self.gamestates[cell.y][cell.x].is_empty = False
-                else:
-                    self.gamestates[cell.y][cell.x].is_empty = True
-
+            
     def restart_snake(self):
         halted = True
         while halted:
             self.display_highscores()
+            self.display_restart_instructions()
             events = pygame.event.get()
             for event in events:
                 if event.type == pygame.QUIT:
@@ -122,6 +112,12 @@ class Snake:
                     elif event.key == pygame.K_n:
                         halted = False
                         sys.exit(f"GAME OVER! Final Score: {self.length}")
+                        
+    def draws(self):
+        width = pygame.display.get_window_size()[0] // self.rows
+        for segment in self.body:
+            rect = (segment[0] * width, segment[1] * width, width, width)
+            pygame.draw.rect(self.screen, "red", pygame.Rect(rect))
 
     def display_highscores(self):
         score_font = pygame.font.SysFont('Comic Sans MS', 30)
@@ -133,6 +129,18 @@ class Snake:
             self.screen.blit(individual_score_text, individual_score_rect)
 
         pygame.display.update()
+
+    def display_score(self):
+        my_font = pygame.font.SysFont('Comic Sans MS', 30)
+        text_surface = my_font.render(f"{self.length}", False, "red")
+        self.screen.blit(text_surface, dest=(0, 0))
+        
+    def display_restart_instructions(self):
+        restart_font = pygame.font.SysFont('Comic Sans MS', 30)
+        restart_text = restart_font.render("Press `y` to restart or `n` to exit", False, "red")
+        restart_rect = restart_text.get_rect(center=(self.screen_width // 2, self.screen_height * 0.80))
+        self.screen.blit(restart_text, restart_rect)
+
 
 class Food:
     def __init__(self, gamestates, screen):
