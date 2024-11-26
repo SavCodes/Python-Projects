@@ -1,23 +1,14 @@
 import pygame
 
 class SpriteSheet():
-    def __init__(self, sprite_sheet):
+    def __init__(self, sprite_sheet, number_of_animations):
         self.sprites = pygame.image.load(sprite_sheet)
         self.sprite_group = pygame.sprite.Group()
+        self.number_of_animations = number_of_animations
+        self.frame_list = [self.sprites.subsurface((32*index,0, 32, 32)) for index in range(self.number_of_animations)]
 
-    def get_frames(self, width, height, scale, color):
-        number_of_frames = self.sprites.get_width() // width
-        for frame in range(number_of_frames):
-            image = pygame.Surface((width,height))
-            image.set_colorkey(color)
-            image = pygame.transform.scale(image, (width*scale, height*scale))
-            image = image.blit(self.sprites, (0,0), ((frame*width), 0, width, height))
-            FRAME = Frame(image)
-            self.sprite_group.add(FRAME)
 
-class Frame(pygame.sprite.Sprite):
-    def __init__(self, frame):
-        pygame.sprite.Sprite.__init__(self)
+
 
 
 
