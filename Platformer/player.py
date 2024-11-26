@@ -1,6 +1,13 @@
+import pygame
+import spritesheet
+
 class Player:
     def __init__(self):
         self.screen_width, self.screen_height = 800, 600
+
+        # Running animation requirements
+        self.run_sprites = spritesheet.SpriteSheet("Pink_Monster_Run_6.png", 6)
+        self.run_index = 0
 
         # Initialize player dimensions
         self.player_height = 100
@@ -22,10 +29,10 @@ class Player:
         self.is_touching_ground = True
         self.max_jumps = 2
         self.jump_count = 0
-        
-    def display_player(self):
+
+    def display_player(self, screen):
         player_rect = (self.x_position, self.y_position, self.player_width, self.player_height)
-        player = pygame.draw.rect(pygame.display.get_surface(), (255, 255, 255), player_rect)
+        screen.blit(self.run_sprites.frame_list[int(self.run_index)], player_rect)
 
     def move_player(self):
         self.x_position += self.x_velocity
@@ -35,11 +42,20 @@ class Player:
 
     def get_player_movement(self, keys):
         if keys[pygame.K_LEFT]:
-            self.x_velocity = -5
+            self.x_velocity = -1
+            self.animate_run()
         elif keys[pygame.K_RIGHT]:
-            self.x_velocity = 5
+            self.x_velocity = 1
+            self.animate_run()
         else:
             self.x_velocity = 0
+
+    def animate_run(self):
+        if self.run_index < self.run_sprites.number_of_animations - 1:
+            self.run_index += 0.2
+        else:
+            self.run_index = 0
+
 
     def jump_player(self):
         if self.jump_count < self.max_jumps:
@@ -52,3 +68,4 @@ class Player:
             self.jump_count = 0
         else:
             self.is_touching_ground = False
+
