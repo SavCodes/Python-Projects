@@ -39,20 +39,21 @@ class Player:
     def display_player(self, screen):
         player_rect = (self.x_position, self.y_position, self.player_width, self.player_height)
         self.animate_jump()
+
         # If Running use run sprites
         if self.y_velocity == 0 and self.is_touching_ground:
-            # Face right if moving right
-            if self.direction > 0:
-                frame_to_display = self.run_sprites.frame_list[int(self.run_index)]
-            # Face left if moving left
-            elif self.direction < 0:
-                frame_to_display = pygame.transform.flip(self.run_sprites.frame_list[int(self.run_index)], True, False)
+            frame_to_display = self.run_sprites.frame_list[int(self.run_index)]
 
-            screen.blit(frame_to_display, player_rect)
-
+        # If Jumping use jump sprites
         else:
-            # If Jumping use jump sprites
-            screen.blit(self.jump_sprite.frame_list[int(self.jump_index)], player_rect)
+            frame_to_display = self.jump_sprite.frame_list[int(self.jump_index)]
+
+        # Flip frame if needed depending on player direction
+        if self.direction < 0:
+                frame_to_display = pygame.transform.flip(frame_to_display, True, False)
+
+
+        screen.blit(frame_to_display, player_rect)
 
     def move_player(self):
         self.x_position += self.x_velocity
@@ -78,20 +79,18 @@ class Player:
         else:
             self.run_index = 0
 
-
     def animate_jump(self):
-        # Animate Rising Part of jump
+        # Reset jump animation if player touches the ground
         if self.is_touching_ground:
             self.jump_index = 0
 
+        # Animate rising part of jump
         elif self.y_velocity < 0 and self.jump_index < 4:
             self.jump_index += self.animation_speed
-            print(self.jump_index)
 
-        # Animate Falling Part of jump
+        # Animate falling part of jump
         elif self.y_velocity > 0 and self.jump_index < self.jump_sprite.number_of_animations - 2:
             self.jump_index += self.animation_speed
-            print(self.jump_index)
 
     def jump_player(self):
         if self.jump_count < self.max_jumps:
