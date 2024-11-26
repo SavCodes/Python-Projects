@@ -33,9 +33,6 @@ class Player:
         self.x_velocity += self.x_acceleration
         self.y_velocity += self.y_acceleration
 
-        print("Y ACCELERATION: ", self.y_acceleration)
-        print("Y VELOCITY: ", self.y_velocity)
-
     def get_player_movement(self, keys):
         if keys[pygame.K_LEFT]:
             self.x_velocity = -5
@@ -45,6 +42,7 @@ class Player:
             self.x_velocity = 0
 
     def jump_player(self):
+        print("JUMPING")
         self.y_velocity = -10
 
     def ground_check(self):
@@ -56,7 +54,8 @@ class Player:
 
 def gravity(sprite):
     if not sprite.is_touching_ground:
-        sprite.y_acceleration = 0.1
+        print("FALLING: ", sprite.y_velocity)
+        sprite.y_acceleration = 0.5
     else:
         sprite.y_acceleration = 0
         sprite.y_velocity = 0
@@ -89,10 +88,11 @@ def main():
         running = event_checker(player_one)
 
         #PLAYER LOGIC
-        player_one.ground_check()
         player_one.move_player()
-        player_one.display_player()
+        player_one.ground_check()
         gravity(player_one)
+        player_one.display_player()
+
 
         pygame.display.update()
         clock.tick(60)
