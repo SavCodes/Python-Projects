@@ -44,7 +44,7 @@ class Snake:
         self.move = [-1,0]
         self.grow_sound = pygame.mixer.Sound("grow.wav")
         self.lose_sound = pygame.mixer.Sound("game_over.wav")
-        self.highscore_list = []
+        self.highscore_list = ["Highscores:"]
 
     def draws(self):
         width = pygame.display.get_window_size()[0] // self.rows
@@ -83,6 +83,7 @@ class Snake:
             self.highscore_list.append(self.length)
             self.restart_snake()
 
+
         # Checks for collision with self -----------------------------------------------:
         elif [self.head_x, self.head_y] in self.body[1:]:
             self.lose_sound.play()
@@ -114,7 +115,6 @@ class Snake:
                     if event.key == pygame.K_y:
                         self.head_x = self.cols // 2
                         self.head_y = self.rows // 2
-                        self.highscore_list.append(self.length)
                         self.length = 0
                         self.body = [[self.head_x, self.head_y]]
                         halted = False
@@ -124,14 +124,11 @@ class Snake:
 
     def display_highscores(self):
         score_font = pygame.font.SysFont('Comic Sans MS', 30)
-        score_text = score_font.render(f"High Scores:", False, "red")
-        score_rect = score_text.get_rect(center=(self.screen_width//2, self.screen_height//3))
-        self.screen.blit(score_text, score_rect)
+        self.highscore_list[1:] = sorted(self.highscore_list[1:], reverse=True)
 
-
-        for index, highscore in enumerate(self.highscore_list):
+        for index, highscore in enumerate(self.highscore_list[:6]):
             individual_score_text = score_font.render(str(highscore), False, "red")
-            individual_score_rect = individual_score_text.get_rect(center=(self.screen_width//2, self.screen_height//3 + ((index+1) * 30 )))
+            individual_score_rect = individual_score_text.get_rect(center=(self.screen_width//2, self.screen_height//3 + index * 30 ))
             self.screen.blit(individual_score_text, individual_score_rect)
 
         pygame.display.update()
