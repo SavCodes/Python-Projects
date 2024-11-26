@@ -15,8 +15,12 @@ class Player:
         self.run_index = 0
 
         # Jump animation requirements
-        self.jump_sprite = spritesheet.SpriteSheet("Pink_Monster_Jump_8.png")
+        self.jump_sprites = spritesheet.SpriteSheet("Pink_Monster_Jump_8.png")
         self.jump_index = 0
+
+        # Attack animation requirements
+        self.attack_sprites = spritesheet.SpriteSheet("Pink_Monster_Attack1_4.png")
+        self.attack_index = 0
 
         # Initialize player dimensions
         self.player_height = 100
@@ -56,7 +60,7 @@ class Player:
 
         # If Jumping use jump sprites
         else:
-            frame_to_display = self.jump_sprite.frame_list[int(self.jump_index)]
+            frame_to_display = self.jump_sprites.frame_list[int(self.jump_index)]
 
         # Flip frame if needed depending on player direction
         if self.direction < 0:
@@ -106,8 +110,11 @@ class Player:
             self.jump_index += self.animation_speed
 
         # Animate falling part of jump
-        elif self.y_velocity > 0 and self.jump_index < self.jump_sprite.number_of_animations - 2:
+        elif self.y_velocity > 0 and self.jump_index < self.jump_sprites.number_of_animations - 2:
             self.jump_index += self.animation_speed
+
+    def animate_attack(self):
+        pass
 
     def jump_player(self):
         if self.jump_count < self.max_jumps:
@@ -121,3 +128,12 @@ class Player:
         else:
             self.is_touching_ground = False
 
+    def player_event_checker(self, game_event):
+        if game_event.type == pygame.KEYDOWN and game_event.key == pygame.K_SPACE:
+            self.jump_player()
+
+        elif game_event.type == pygame.KEYDOWN and game_event.key == pygame.K_q:
+            print("IM ATTACKING")
+
+        keys = pygame.key.get_pressed()
+        self.get_player_movement(keys)
