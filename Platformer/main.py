@@ -20,11 +20,12 @@ class Player:
         self.x_acceleration = 0
         self.y_acceleration = 0
 
+        # Initialize player logic
+        self.is_touching_ground = True
 
     def display_player(self):
         player_rect = (self.x_position, self.y_position, self.player_width, self.player_height)
         player = pygame.draw.rect(pygame.display.get_surface(), (255, 255, 255), player_rect)
-
 
     def move_player(self):
         self.x_position += self.x_velocity
@@ -32,7 +33,33 @@ class Player:
         self.x_velocity += self.x_acceleration
         self.y_velocity += self.y_acceleration
 
+        print("Y ACCELERATION: ", self.y_acceleration)
+        print("Y VELOCITY: ", self.y_velocity)
 
+    def get_player_movement(self, keys):
+        if keys[pygame.K_LEFT]:
+            self.x_velocity = -5
+        elif keys[pygame.K_RIGHT]:
+            self.x_velocity = 5
+        else:
+            self.x_velocity = 0
+
+    def jump_player(self):
+        self.y_velocity = -10
+
+    def ground_check(self):
+        if self.y_position > self.screen_height - self.player_height:
+            self.is_touching_ground = True
+
+        else:
+            self.is_touching_ground = False
+
+def gravity(sprite):
+    if not sprite.is_touching_ground:
+        sprite.y_acceleration = 0.1
+    else:
+        sprite.y_acceleration = 0
+        sprite.y_velocity = 0
 
 def initialize_pygame():
     pygame.init()
@@ -42,15 +69,13 @@ def event_checker(player):
     for event in events:
         if event.type == pygame.QUIT:
             return False
-        keys = pygame.key.get_pressed()
 
-        # Move player based on pressed keys
-        if keys[pygame.K_LEFT]:
-            player.x_velocity = -5
-        elif keys[pygame.K_RIGHT]:
-            player.x_velocity = 5
-        else:
-            player.x_velocity = 0
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+            player.jump_player()
+
+        keys = pygame.key.get_pressed()
+        player.get_player_movement(keys)
+
 
     return True
 
@@ -64,8 +89,10 @@ def main():
         running = event_checker(player_one)
 
         #PLAYER LOGIC
+        player_one.ground_check()
         player_one.move_player()
         player_one.display_player()
+        gravity(player_one)
 
         pygame.display.update()
         clock.tick(60)
