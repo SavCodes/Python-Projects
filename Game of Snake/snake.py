@@ -62,7 +62,7 @@ class Snake:
         new_head = [[self.body[0][0] + x_move, self.body[0][1] + y_move]]
         self.body = new_head + self.body[:-1]
         self.head_x, self.head_y = self.body[0]
-    
+
     def grow(self):
         self.grow_sound.play()
         tail_x, tail_y = self.body[-1]
@@ -70,7 +70,7 @@ class Snake:
         new_tail_y = tail_y + (-self.move[1])
         self.body.append([new_tail_x, new_tail_y])
         self.length += 1
-    
+
     def update_gamestates(self):
         for row in self.gamestates:
             for cell in row:
@@ -79,7 +79,7 @@ class Snake:
                 else:
                     self.gamestates[cell.y][cell.x].is_empty = True
 
-    def check_collisions(self, screen):
+    def check_collisions(self):
         # Checks for collision with walls ----------------------------------------------:
         if not 0 <= self.head_x <= self.cols -1 or not 0 <= self.head_y <= self.rows -1:
             self.lose_sound.play()
@@ -92,7 +92,7 @@ class Snake:
             self.lose_sound.play()
             self.highscore_list.append(self.length)
             self.restart_snake()
-            
+
     def restart_snake(self):
         halted = True
         while halted:
@@ -112,7 +112,7 @@ class Snake:
                     elif event.key == pygame.K_n:
                         halted = False
                         sys.exit(f"GAME OVER! Final Score: {self.length}")
-                        
+
     def draws(self):
         width = pygame.display.get_window_size()[0] // self.rows
         for segment in self.body:
@@ -134,7 +134,7 @@ class Snake:
         my_font = pygame.font.SysFont('Comic Sans MS', 30)
         text_surface = my_font.render(f"{self.length}", False, "red")
         self.screen.blit(text_surface, dest=(0, 0))
-        
+
     def display_restart_instructions(self):
         restart_font = pygame.font.SysFont('Comic Sans MS', 30)
         restart_text = restart_font.render("Press `y` to restart or `n` to exit", False, "red")
@@ -336,7 +336,7 @@ def main(ROWS, COLS):
             snake.update_gamestates()
             food.eat_food(snake)
             snake.moves()
-            snake.check_collisions(screen)
+            snake.check_collisions()
             # Logic Handling End ------------------------------------------------------
 
             # Display Handling Start --------------------------------------------------
