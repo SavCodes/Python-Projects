@@ -1,6 +1,8 @@
 import pygame
 import spritesheet
 
+# Dead players still linger in memory => Find a way to remove instantiated player object
+
 class Player:
     def __init__(self):
         self.screen_width, self.screen_height = 800, 600
@@ -169,6 +171,10 @@ class Player:
 
         elif game_event.type == pygame.KEYDOWN and game_event.key == pygame.K_ESCAPE:
             self.current_health -= 100
+
+        elif game_event.type == pygame.KEYDOWN and game_event.key == pygame.K_TAB:
+            self.current_health = self.max_health
+            self.is_alive = True
 
         keys = pygame.key.get_pressed()
         self.get_player_movement(keys)
