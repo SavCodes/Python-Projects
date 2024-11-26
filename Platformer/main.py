@@ -22,6 +22,8 @@ class Player:
 
         # Initialize player logic
         self.is_touching_ground = True
+        self.max_jumps = 2
+        self.jump_count = 0
 
     def display_player(self):
         player_rect = (self.x_position, self.y_position, self.player_width, self.player_height)
@@ -42,13 +44,14 @@ class Player:
             self.x_velocity = 0
 
     def jump_player(self):
-        print("JUMPING")
-        self.y_velocity = -10
+        if self.jump_count < self.max_jumps:
+            self.jump_count += 1
+            self.y_velocity = -10
 
     def ground_check(self):
         if self.y_position > self.screen_height - self.player_height:
             self.is_touching_ground = True
-
+            self.jump_count = 0
         else:
             self.is_touching_ground = False
 
