@@ -10,12 +10,7 @@ def event_checker(player):
     for event in events:
         if event.type == pygame.QUIT:
             return False
-
-        elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-            player.jump_player()
-
-    keys = pygame.key.get_pressed()
-    player.get_player_movement(keys)
+        player.player_event_checker(event)
     return True
 
 def main():
@@ -30,6 +25,7 @@ def main():
         player_one.move_player()
         player_one.ground_check()
         physics.gravity(player_one)
+
 
         # Plyer Display
         screen.fill((0, 0, 0))
