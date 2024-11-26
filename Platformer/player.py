@@ -11,6 +11,11 @@ class Player:
         self.idle_index = 0
         self.is_attacking = False
 
+        # Death animation requirements
+        self.death_sprites = spritesheet.SpriteSheet("Pink_Monster_Death_8.png")
+        self.death_index = 0
+        self.health = 100
+
         # Running animation requirements
         self.run_sprites = spritesheet.SpriteSheet("Pink_Monster_Run_6.png")
         self.run_index = 0
@@ -51,9 +56,14 @@ class Player:
         self.animate_jump()
         self.animate_run()
         self.animate_attack()
+        self.animate_death()
+
+        # If the player died play the death animation:
+        if self.health <= 0:
+            frame_to_display = self.death_sprites.frame_list[int(self.death_index)]
 
         # If attacking use attack animation
-        if self.is_attacking:
+        elif self.is_attacking:
             frame_to_display = self.attack_sprites.frame_list[int(self.attack_index)]
 
         # If Standing use idle sprites
@@ -119,6 +129,12 @@ class Player:
         elif self.y_velocity > 0 and self.jump_index < self.jump_sprites.number_of_animations - 2:
             self.jump_index += self.animation_speed
 
+    def animate_death(self):
+        if self.health == 0 and self.death_index < self.death_sprites.number_of_animations - 1:
+            self.death_index += self.animation_speed
+        else:
+            self.death_index = 0
+
     def animate_attack(self):
         if self.is_attacking and self.attack_index < self.attack_sprites.number_of_animations - 1:
             self.attack_index += self.animation_speed
@@ -144,6 +160,9 @@ class Player:
 
         elif game_event.type == pygame.KEYDOWN and game_event.key == pygame.K_q and not self.is_attacking:
             self.is_attacking = True
+
+        elif game_event.type == pygame.KEYDOWN and game_event.key == pygame.K_ESCAPE:
+            self.health -= 100
 
         keys = pygame.key.get_pressed()
         self.get_player_movement(keys)
