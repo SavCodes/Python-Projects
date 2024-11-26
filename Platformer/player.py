@@ -9,6 +9,7 @@ class Player:
         # Idle animation requirements
         self.idle_sprites = spritesheet.SpriteSheet("Pink_Monster_Idle_4.png")
         self.idle_index = 0
+        self.is_attacking = False
 
         # Running animation requirements
         self.run_sprites = spritesheet.SpriteSheet("Pink_Monster_Run_6.png")
@@ -49,9 +50,14 @@ class Player:
         self.animate_idle()
         self.animate_jump()
         self.animate_run()
+        self.animate_attack()
+
+        # If attacking use attack animation
+        if self.is_attacking:
+            frame_to_display = self.attack_sprites.frame_list[int(self.attack_index)]
 
         # If Standing use idle sprites
-        if self.x_velocity == 0 and self.is_touching_ground:
+        elif self.x_velocity == 0 and self.is_touching_ground:
             frame_to_display = self.idle_sprites.frame_list[int(self.idle_index)]
 
         # If Running use run sprites
@@ -114,7 +120,11 @@ class Player:
             self.jump_index += self.animation_speed
 
     def animate_attack(self):
-        pass
+        if self.is_attacking and self.attack_index < self.attack_sprites.number_of_animations - 1:
+            self.attack_index += self.animation_speed
+        else:
+            self.is_attacking = False
+            self.attack_index = 0
 
     def jump_player(self):
         if self.jump_count < self.max_jumps:
@@ -132,8 +142,8 @@ class Player:
         if game_event.type == pygame.KEYDOWN and game_event.key == pygame.K_SPACE:
             self.jump_player()
 
-        elif game_event.type == pygame.KEYDOWN and game_event.key == pygame.K_q:
-            print("IM ATTACKING")
+        elif game_event.type == pygame.KEYDOWN and game_event.key == pygame.K_q and not self.is_attacking:
+            self.is_attacking = True
 
         keys = pygame.key.get_pressed()
         self.get_player_movement(keys)
