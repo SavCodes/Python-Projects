@@ -66,6 +66,7 @@ class Player:
         player_rect = (self.x_position, self.y_position, self.player_width, self.player_height)
         self.animate_idle()
         self.animate_jump()
+        self.animate_double_jump(screen)
         self.animate_walk()
         self.animate_run()
         self.animate_attack()
@@ -159,12 +160,13 @@ class Player:
         elif self.y_velocity > 0 and self.jump_index < self.jump_sprites.number_of_animations - 2:
             self.jump_index += self.animation_speed
 
-    def animate_double_jump(self):
-        if self.jump_index == 2 and self.double_jump_index < self.double_jump_sprites.number_of_animations - 1:
+    def animate_double_jump(self, screen):
+        if self.jump_count == 2 and self.double_jump_index < self.double_jump_sprites.number_of_animations - 1:
+            double_jump_dust_surface = (self.x_position, self.y_position + self.player_height // 6, self.player_width, self.player_height)
+            screen.blit(self.double_jump_sprites.frame_list[int(self.double_jump_index)], double_jump_dust_surface)
             self.double_jump_index += self.animation_speed
-
-        if self.double_jump_index == self.double_jump_sprites.number_of_animations:
-            pass
+        if self.jump_count == 0:
+            self.double_jump_index = 0
 
     def animate_death(self):
         if self.current_health == 0 and self.death_index < self.death_sprites.number_of_animations - 1:
