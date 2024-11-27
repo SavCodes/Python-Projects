@@ -1,11 +1,11 @@
 import pygame
 import spritesheet
 
-# Dead players still linger in memory => Find a way to remove instantiated player object
 
 class Player:
-    def __init__(self):
+    def __init__(self, arrow_controls=True):
         self.screen_width, self.screen_height = 800, 600
+        self.image = None
         self.animation_speed = 0.2
 
         # Idle animation requirements
@@ -61,9 +61,11 @@ class Player:
 
         # Initialize player logic
         self.direction = 1
+        self.collision = None
+        self.arrow_controls = arrow_controls
 
     def display_player(self, screen):
-        player_rect = (self.x_position, self.y_position, self.player_width, self.player_height)
+        self.player_rect = (self.x_position, self.y_position, self.player_width, self.player_height)
         self.animate_double_jump(screen)
 
         # If the player died play the death animation:
@@ -95,7 +97,9 @@ class Player:
             frame_to_display = pygame.transform.flip(frame_to_display, True, False)
 
         if self.is_alive:
-            screen.blit(frame_to_display, player_rect)
+            screen.blit(frame_to_display, self.player_rect)
+
+        self.image = frame_to_display
 
     def move_player(self):
         self.x_position += self.x_velocity
@@ -104,19 +108,28 @@ class Player:
         self.y_velocity += self.y_acceleration
 
     def get_player_movement(self, keys):
-        if keys[pygame.K_1] and keys[pygame.K_LEFT]:
+        if self.arrow_controls:
+            controls = [pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_DOWN]
+        else:
+            controls = [pygame.K_a, pygame.K_d, pygame.K_w, pygame.K_s]
+
+        # Sprint left
+        if keys[pygame.K_1] and keys[controls[0]]:
             self.x_velocity = -3
             self.direction = -1
 
-        elif keys[pygame.K_1] and keys[pygame.K_RIGHT]:
+        # Sprint right
+        elif keys[pygame.K_1] and keys[controls[1]]:
             self.x_velocity = 3
             self.direction = 1
 
-        elif keys[pygame.K_LEFT]:
+        # Walk left
+        elif keys[controls[0]]:
             self.x_velocity = -1
             self.direction = -1
 
-        elif keys[pygame.K_RIGHT]:
+        # Walk right
+        elif keys[controls[1]]:
             self.x_velocity = 1
             self.direction = 1
 
@@ -200,6 +213,16 @@ class Player:
             self.jump_count = 0
         else:
             self.is_touching_ground = False
+
+    def check_player_collision(self, player_one, player_two):
+        player_one_mask = pygame.mask.from_surface(player_one.image)
+        player_two_mask = pygame.mask.from_surface(player_two.image)
+
+        self.collision = player_one_mask.overlap(player_two_mask, (self.x_position-player_two.x_position, self.y_position-player_two.y_position))
+        if self.collision:
+            print("Collision at: ", self.collision)
+
+
 
     def player_event_checker(self, game_event):
         if game_event.type == pygame.KEYDOWN and game_event.key == pygame.K_SPACE:
