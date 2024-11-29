@@ -27,7 +27,7 @@ class Ball:
 
     def check_collisions(self, player_one, player_two):
         # Bounces ball off of ceiling and floor
-        if not 0 + self.radius < self.y_position < self.game_height - self.radius:
+        if not self.radius < self.y_position < self.game_height - self.radius:
             self.y_velocity *= -1
 
         # Bounces off left paddle
@@ -37,3 +37,11 @@ class Ball:
         # Bounces off right paddle
         elif self.x_position >= player_two.x_position and player_two.y_position <= self.y_position <= player_two.y_position + player_two.height :
             self.x_velocity *= -1
+
+        elif self.x_position < 0 - 2 * self.radius or self.x_position > self.game_width + 2 * self.radius:
+            self.respawn_ball()
+
+    def respawn_ball(self):
+        self.x_velocity *= -1
+        self.x_position = self.game_width / 2
+        self.y_position = self.game_height / 2
