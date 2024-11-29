@@ -33,7 +33,7 @@ class Player:
         self.jump_index = 0
         self.max_jumps = 2
         self.jump_count = 0
-        self.is_touching_ground = True
+        self.is_touching_ground = False
 
         # Double jump animation requirements
         self.double_jump_sprites = spritesheet.SpriteSheet("Double_Jump_Dust_5.png")
@@ -49,7 +49,7 @@ class Player:
 
         # Initialize player position
         self.x_position = self.screen_width / 2
-        self.y_position = self.screen_height - self.player_height
+        self.y_position = self.screen_height // 2
 
         # Initialize player velocities
         self.x_velocity = 0
@@ -61,7 +61,8 @@ class Player:
 
         # Initialize player logic
         self.direction = 1
-        self.collision = None
+        self.collision_direction = None
+        self.collision = False
         self.arrow_controls = arrow_controls
 
     def display_player(self, screen):
@@ -203,6 +204,7 @@ class Player:
         return self.attack_sprites.frame_list[int(self.attack_index)]
 
     def jump_player(self):
+        self.is_touching_ground = False
         if self.jump_count < self.max_jumps:
             self.jump_count += 1
             self.y_velocity = -10
@@ -211,18 +213,21 @@ class Player:
         if self.y_position > self.screen_height - self.player_height:
             self.is_touching_ground = True
             self.jump_count = 0
-        else:
-            self.is_touching_ground = False
 
-    def check_player_collision(self, player_one, player_two):
-        player_one_mask = pygame.mask.from_surface(player_one.image)
-        player_two_mask = pygame.mask.from_surface(player_two.image)
+    def check_player_collision(self, colliding_objects):
+        player_one_mask = pygame.mask.from_surface(self.image)
 
-        self.collision = player_one_mask.overlap(player_two_mask, (self.x_position-player_two.x_position, self.y_position-player_two.y_position))
-        if self.collision:
-            print("Collision at: ", self.collision)
+        for colliding_object in colliding_objects:
+            colliding_object_mask = pygame.mask.from_surface(colliding_object.image)
+            collision_offset = (self.x_position-colliding_object.x_position, self.y_position-colliding_object.y_position)
+            self.collision = player_one_mask.overlap(colliding_object_mask, collision_offset)
 
+            if self.collision and -72 <= collision_offset[0] < 72:
+                self.x_position -= self.x_velocity
 
+            if self.collision and  -96 <= collision_offset[1] <= 96:
+                self.y_position -= self.y_velocity
+                self.is_touching_ground = True
 
     def player_event_checker(self, game_event):
         if game_event.type == pygame.KEYDOWN and game_event.key == pygame.K_SPACE:
