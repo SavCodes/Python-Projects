@@ -8,6 +8,7 @@ class Paddle:
         self.width = 10
         self.height = 60
         self.move_speed = 5
+        self.screen_width, self.screen_height = pygame.display.get_window_size()
 
     def render_paddle(self, screen):
         self.paddle_event_checker()
@@ -19,6 +20,6 @@ class Paddle:
 
         if keys[self.move_set[0]] and self.y_position > 0:
             self.y_position -= self.move_speed
-        elif keys[self.move_set[1]] and self.y_position < pygame.display.get_window_size()[1] - self.height:
+        elif keys[self.move_set[1]] and self.y_position < self.screen_height - self.height:
             self.y_position += self.move_speed
 
