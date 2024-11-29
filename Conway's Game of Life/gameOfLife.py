@@ -1,6 +1,15 @@
 import pygame
 import random
 
+# TO DO LIST:
+# - Add detection for if all cells are dead
+# - Add detection for the game reaching a stable state
+# - Add side panel with live statistics
+#       - Stable state vs extinction count
+#       - Extinction / Stable state time
+#       - Total cells spawned
+#       - A running average across all generations for each statistic
+
 class GameBoard:
     def __init__(self, board_size):
         self.board_size = board_size
