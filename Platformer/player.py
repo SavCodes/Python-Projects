@@ -69,7 +69,6 @@ class Player:
 
     def display_player(self, screen):
         self.player_rect = (self.x_position, self.y_position, self.player_width, self.player_height)
-        pygame.draw.rect(screen, "white", self.player_rect, 2)                              # Drawing player hitbox
         self.animate_double_jump(screen)
 
         # If the player died play the death animation:
@@ -222,29 +221,46 @@ class Player:
             self.y_velocity = -10
 
     def resolve_collision(self, wall_rects, screen):
+        ### DEBUGGING ####
+        # pygame.draw.rect(screen, (255, 0, 0), x_collision_hitbox, 2) # X-Axis hit-box display
+        # pygame.draw.rect(screen, (0, 255, 0), y_collision_hitbox, 2) # Y-Axis hit-box display
+
+        # Find the characters projected position for the next frame
         projected_x = self.x_position + self.x_velocity
         projected_y = self.y_position + self.y_velocity
 
+        # Create hit-boxes for vertical and horizontal collisions
         x_collision_hitbox = pygame.Rect(projected_x + self.player_width_buffer , self.y_position, self.player_width - 2 * self.player_width_buffer, self.player_height)
+        y_collision_hitbox = pygame.Rect(self.x_position + self.player_width // 2, projected_y, 2, self.player_height)
 
-        pygame.draw.rect(screen, (255, 0, 0), x_collision_hitbox, 2)
+
         for wall in wall_rects:
-            pygame.draw.rect(screen, "white", wall.platform_rect, 2)
-            if wall.platform_rect.colliderect(self.x_position, projected_y, self.player_width, self.player_height):
-                if self.y_velocity > 0:
-                    self.is_touching_ground = True
-                    self.y_position = wall.platform_rect.top - self.player_height
-                    self.jump_count = 0
 
-                elif self.y_velocity < 0:
-                    print("add hitting head functionality")
-
+            # X-Axis collision handling
             if wall.platform_rect.colliderect(x_collision_hitbox):
+                # Right sided collision handling
                 if self.x_velocity > 0:
                     self.x_position = wall.platform_rect.left - self.player_width + self.player_width_buffer
+                # Left sided collision handling
                 elif self.x_velocity < 0:
                     self.x_position = wall.platform_rect.right - self.player_width_buffer
 
+            # Y-Axis collision handling
+            if wall.platform_rect.colliderect(y_collision_hitbox):
+
+                # Landing collision handling
+                if self.y_velocity > 0:
+                    # Reset Jump related attributes
+                    self.is_touching_ground = True
+                    self.jump_count = 0
+                    self.jump_index = 0
+                    # Set character y position
+                    self.y_position = wall.platform_rect.top - self.player_height
+
+                # Hitting head collision handling
+                elif self.y_velocity <= 0:
+                    self.y_velocity = 0
+                    self.y_position = wall.platform_rect.bottom
 
     def player_event_checker(self, game_event):
         if game_event.type == pygame.KEYDOWN and game_event.key == pygame.K_SPACE:
