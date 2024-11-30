@@ -3,10 +3,8 @@ import paddle
 import ball
 
 # TO DO LIST:
-# - Add score keeping function and display between rounds
 # - Add round timer and total game timer
 # - Add dynamic bouncing to paddles based on movement or collision location
-# - Add music, program caption, and program icon
 
 # Check if the game was quit
 def event_checker():
@@ -17,12 +15,19 @@ def event_checker():
             return False
     return True
 
+def initialize_game():
+    pygame.init()
+    game_icon = pygame.image.load("pong_icon.png")
+    pygame.display.set_icon(game_icon)
+    pygame.display.set_caption("Pong", "Pong")
+    screen = pygame.display.set_mode((800, 600))
+    clock = pygame.time.Clock()
+    return screen, clock
+
 # Run the main game loop
 def main():
     # Create required pygame objects
-    pygame.init()
-    screen = pygame.display.set_mode((800, 600))
-    clock = pygame.time.Clock()
+    screen, clock = initialize_game()
 
     # Create the ball
     game_ball = ball.Ball(screen)
@@ -40,6 +45,7 @@ def main():
 
         game_ball.check_collisions(player_one, player_two)  # Check if the ball made contact with paddles
         game_ball.render_ball()                             # Display the ball
+        game_ball.render_score()                            # Display the score
 
         pygame.display.flip()                               # Update the screen after drawing all objects
         clock.tick(60)                                      # Cap FPS at 60
