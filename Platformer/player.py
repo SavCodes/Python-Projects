@@ -1,47 +1,49 @@
 import pygame
 import spritesheet
 
+# Optimize Collision check by isolating and only checking tiles that are within reach
 
 class Player:
-    def __init__(self, arrow_controls=True):
+    def __init__(self,scale=1, arrow_controls=True):
         self.screen_width, self.screen_height = 800, 600
         self.image = None
         self.animation_speed = 0.2
+        self.scale = scale
 
         # Idle animation requirements
-        self.idle_sprites = spritesheet.SpriteSheet("Pink_Monster_Idle_4.png")
+        self.idle_sprites = spritesheet.SpriteSheet("Pink_Monster_Idle_4.png", scale=self.scale)
         self.idle_index = 0
         self.is_attacking = False
         self.idle_inhale = True
 
         # Death animation requirements
-        self.death_sprites = spritesheet.SpriteSheet("Pink_Monster_Death_8.png")
+        self.death_sprites = spritesheet.SpriteSheet("Pink_Monster_Death_8.png", scale=self.scale)
         self.death_index = 0
         self.is_alive = True
         self.max_health = 100
         self.current_health = self.max_health
 
         # Walking animation requirements
-        self.walk_sprites = spritesheet.SpriteSheet("Pink_Monster_Walk_6.png")
+        self.walk_sprites = spritesheet.SpriteSheet("Pink_Monster_Walk_6.png", scale=self.scale)
         self.walk_index = 0
 
         # Running animation requirements
-        self.run_sprites = spritesheet.SpriteSheet("Pink_Monster_Run_6.png")
+        self.run_sprites = spritesheet.SpriteSheet("Pink_Monster_Run_6.png", scale=self.scale)
         self.run_index = 0
 
         # Jump animation requirements
-        self.jump_sprites = spritesheet.SpriteSheet("Pink_Monster_Jump_8.png")
+        self.jump_sprites = spritesheet.SpriteSheet("Pink_Monster_Jump_8.png", scale=self.scale)
         self.jump_index = 0
         self.max_jumps = 2
         self.jump_count = 0
         self.is_touching_ground = False
 
         # Double jump animation requirements
-        self.double_jump_sprites = spritesheet.SpriteSheet("Double_Jump_Dust_5.png")
+        self.double_jump_sprites = spritesheet.SpriteSheet("Double_Jump_Dust_5.png", scale=self.scale)
         self.double_jump_index = 0
 
         # Attack animation requirements
-        self.attack_sprites = spritesheet.SpriteSheet("Pink_Monster_Attack1_4.png")
+        self.attack_sprites = spritesheet.SpriteSheet("Pink_Monster_Attack1_4.png", scale=self.scale)
         self.attack_index = 0
 
         # Initialize player position
@@ -49,9 +51,9 @@ class Player:
         self.y_position = self.screen_height // 2
 
         # Initialize player dimensions
-        self.player_height = 96
-        self.player_width = 96
-        self.player_width_buffer = 19
+        self.player_height = 32 * self.scale
+        self.player_width = 32 * self.scale
+        self.player_width_buffer = 32 * self.scale * 0.2
 
         # Initialize player velocities
         self.x_velocity = 0
