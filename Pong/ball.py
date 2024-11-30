@@ -1,4 +1,5 @@
 import pygame
+import math
 
 class Ball:
     def __init__(self, screen):
@@ -35,13 +36,25 @@ class Ball:
         if not self.radius < self.y_position < self.game_height - self.radius:
             self.y_velocity *= -1
 
-        # Bounces off left paddle
-        elif self.x_position <= player_one.x_position + self.radius + player_one.width and player_one.y_position <= self.y_position <=  player_one.y_position + player_one.height :
+        # Bounces off top half left paddle
+        elif player_one.x_position <= self.x_position <= player_one.x_position + self.radius + player_one.width and player_one.y_position <= self.y_position <=  player_one.y_position + player_one.height // 2 :
             self.x_velocity *= -1
+            self.y_velocity = -self.ball_speed
 
-        # Bounces off right paddle
-        elif self.x_position >= player_two.x_position and player_two.y_position <= self.y_position <= player_two.y_position + player_two.height :
+        # Bounces off bottom half of left paddle
+        elif player_one.x_position <= self.x_position <= player_one.x_position + self.radius + player_one.width and player_one.y_position + player_one.height // 2 <=  self.y_position <=  player_one.y_position + player_one.height:
             self.x_velocity *= -1
+            self.y_velocity = self.ball_speed
+
+        # Bounces off top half right paddle
+        elif player_two.x_position <= self.x_position <= player_two.x_position + self.radius + player_two.width and player_two.y_position <= self.y_position <=  player_two.y_position + player_two.height // 2 :
+            self.x_velocity *= -1
+            self.y_velocity = -self.ball_speed
+
+        # Bounces off bottom half of right paddle
+        elif player_two.x_position <= self.x_position <= player_two.x_position + self.radius + player_two.width and player_two.y_position + player_two.height // 2 <=  self.y_position <=  player_two.y_position + player_two.height:
+            self.x_velocity *= -1
+            self.y_velocity = -self.ball_speed
 
         # Respawn the ball once off-screen
         elif self.x_position < 0 - 2 * self.radius or self.x_position > self.game_width + 2 * self.radius :
