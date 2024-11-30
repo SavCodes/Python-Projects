@@ -9,41 +9,42 @@ class Player:
         self.image = None
         self.animation_speed = 0.2
         self.scale = scale
+        self.character_image_directory = "./game_assets/player_spritesheets/"
 
         # Idle animation requirements
-        self.idle_sprites = spritesheet.SpriteSheet("Pink_Monster_Idle_4.png", scale=self.scale)
+        self.idle_sprites = spritesheet.SpriteSheet(self.character_image_directory + "Idle_4.png", scale=self.scale)
         self.idle_index = 0
         self.is_attacking = False
         self.idle_inhale = True
 
         # Death animation requirements
-        self.death_sprites = spritesheet.SpriteSheet("Pink_Monster_Death_8.png", scale=self.scale)
+        self.death_sprites = spritesheet.SpriteSheet(self.character_image_directory+ "Death_8.png", scale=self.scale)
         self.death_index = 0
         self.is_alive = True
         self.max_health = 100
         self.current_health = self.max_health
 
         # Walking animation requirements
-        self.walk_sprites = spritesheet.SpriteSheet("Pink_Monster_Walk_6.png", scale=self.scale)
+        self.walk_sprites = spritesheet.SpriteSheet(self.character_image_directory + "Walk_6.png", scale=self.scale)
         self.walk_index = 0
 
         # Running animation requirements
-        self.run_sprites = spritesheet.SpriteSheet("Pink_Monster_Run_6.png", scale=self.scale)
+        self.run_sprites = spritesheet.SpriteSheet(self.character_image_directory + "Run_6.png", scale=self.scale)
         self.run_index = 0
 
         # Jump animation requirements
-        self.jump_sprites = spritesheet.SpriteSheet("Pink_Monster_Jump_8.png", scale=self.scale)
+        self.jump_sprites = spritesheet.SpriteSheet(self.character_image_directory + "Jump_8.png", scale=self.scale)
         self.jump_index = 0
         self.max_jumps = 2
         self.jump_count = 0
         self.is_touching_ground = False
 
         # Double jump animation requirements
-        self.double_jump_sprites = spritesheet.SpriteSheet("Double_Jump_Dust_5.png", scale=self.scale)
+        self.double_jump_sprites = spritesheet.SpriteSheet(self.character_image_directory + "Double_Jump_Dust_5.png", scale=self.scale)
         self.double_jump_index = 0
 
         # Attack animation requirements
-        self.attack_sprites = spritesheet.SpriteSheet("Pink_Monster_Attack1_4.png", scale=self.scale)
+        self.attack_sprites = spritesheet.SpriteSheet(self.character_image_directory + "Attack1_4.png", scale=self.scale)
         self.attack_index = 0
 
         # Initialize player position
@@ -106,12 +107,12 @@ class Player:
 
         self.image = frame_to_display
 
-    def move_player(self, walls, screen):
+    def move_player(self, walls):
         self.x_position += self.x_velocity
         self.y_position += self.y_velocity
         self.x_velocity += self.x_acceleration
         self.y_velocity += self.y_acceleration
-        self.resolve_collision(walls, screen)
+        self.resolve_collision(walls)
 
     def get_player_movement(self, keys):
         if self.arrow_controls:
@@ -222,7 +223,7 @@ class Player:
             self.jump_count += 1
             self.y_velocity = -10
 
-    def resolve_collision(self, wall_rects, screen):
+    def resolve_collision(self, wall_rects):
         ### DEBUGGING ####
         # pygame.draw.rect(screen, (255, 0, 0), x_collision_hitbox, 2) # X-Axis hit-box display
         # pygame.draw.rect(screen, (0, 255, 0), y_collision_hitbox, 2) # Y-Axis hit-box display
@@ -235,34 +236,34 @@ class Player:
         x_collision_hitbox = pygame.Rect(projected_x + self.player_width_buffer , self.y_position, self.player_width - 2 * self.player_width_buffer, self.player_height)
         y_collision_hitbox = pygame.Rect(self.x_position + self.player_width // 2, projected_y, 2, self.player_height)
 
+        for layer in wall_rects:
+            for wall in layer:
 
-        for wall in wall_rects:
+                # X-Axis collision handling
+                if wall.is_collidable and wall.platform_rect.colliderect(x_collision_hitbox):
+                    # Right sided collision handling
+                    if self.x_velocity > 0:
+                        self.x_position = wall.platform_rect.left - self.player_width + self.player_width_buffer
+                    # Left sided collision handling
+                    elif self.x_velocity < 0:
+                        self.x_position = wall.platform_rect.right - self.player_width_buffer
 
-            # X-Axis collision handling
-            if wall.platform_rect.colliderect(x_collision_hitbox):
-                # Right sided collision handling
-                if self.x_velocity > 0:
-                    self.x_position = wall.platform_rect.left - self.player_width + self.player_width_buffer
-                # Left sided collision handling
-                elif self.x_velocity < 0:
-                    self.x_position = wall.platform_rect.right - self.player_width_buffer
+                # Y-Axis collision handling
+                if wall.is_collidable and wall.platform_rect.colliderect(y_collision_hitbox):
 
-            # Y-Axis collision handling
-            if wall.platform_rect.colliderect(y_collision_hitbox):
+                    # Landing collision handling
+                    if self.y_velocity > 0:
+                        # Reset Jump related attributes
+                        self.is_touching_ground = True
+                        self.jump_count = 0
+                        self.jump_index = 0
+                        # Set character y position
+                        self.y_position = wall.platform_rect.top - self.player_height
 
-                # Landing collision handling
-                if self.y_velocity > 0:
-                    # Reset Jump related attributes
-                    self.is_touching_ground = True
-                    self.jump_count = 0
-                    self.jump_index = 0
-                    # Set character y position
-                    self.y_position = wall.platform_rect.top - self.player_height
-
-                # Hitting head collision handling
-                elif self.y_velocity <= 0:
-                    self.y_velocity = 0
-                    self.y_position = wall.platform_rect.bottom
+                    # Hitting head collision handling
+                    elif self.y_velocity <= 0:
+                        self.y_velocity = 0
+                        self.y_position = wall.platform_rect.bottom
 
     def player_event_checker(self, game_event):
         if game_event.type == pygame.KEYDOWN and game_event.key == pygame.K_SPACE:
