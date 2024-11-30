@@ -51,7 +51,7 @@ class Player:
         # Initialize player dimensions
         self.player_height = 96
         self.player_width = 96
-        self.player_width_buffer = 17
+        self.player_width_buffer = 19
 
         # Initialize player velocities
         self.x_velocity = 0
@@ -225,8 +225,9 @@ class Player:
         projected_x = self.x_position + self.x_velocity
         projected_y = self.y_position + self.y_velocity
 
-        player_rect = pygame.Rect(self.x_position, self.y_position, self.player_width, self.player_height)
+        x_collision_hitbox = pygame.Rect(projected_x + self.player_width_buffer , self.y_position, self.player_width - 2 * self.player_width_buffer, self.player_height)
 
+        pygame.draw.rect(screen, (255, 0, 0), x_collision_hitbox, 2)
         for wall in wall_rects:
             pygame.draw.rect(screen, "white", wall.platform_rect, 2)
             if wall.platform_rect.colliderect(self.x_position, projected_y, self.player_width, self.player_height):
@@ -238,11 +239,11 @@ class Player:
                 elif self.y_velocity < 0:
                     print("add hitting head functionality")
 
-            if wall.platform_rect.colliderect(projected_x, self.y_position, self.player_width, self.player_height):
+            if wall.platform_rect.colliderect(x_collision_hitbox):
                 if self.x_velocity > 0:
-                    self.x_position = wall.platform_rect.left - self.player_width
+                    self.x_position = wall.platform_rect.left - self.player_width + self.player_width_buffer
                 elif self.x_velocity < 0:
-                    self.x_position = wall.platform_rect.right
+                    self.x_position = wall.platform_rect.right - self.player_width_buffer
 
 
     def player_event_checker(self, game_event):
