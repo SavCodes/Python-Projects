@@ -4,7 +4,7 @@ import ball
 
 # TO DO LIST:
 # - Add round timer and total game timer
-# - Add dynamic bouncing to paddles based on movement or collision location
+# - Improve dynamic ball deflections
 
 # Check if the game was quit
 def event_checker():
