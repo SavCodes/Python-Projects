@@ -5,6 +5,8 @@ import world_generator
 import level_files
 
 # TO DO LIST:
+#   -Change world generation so players each have their own levels
+#   -Draw only on screen tiles
 #   -Add level progression mechanic
 #   -Create level editor
 #   -Create pause menu
@@ -30,6 +32,7 @@ def main(game_scale=1):
     running = True
     initialize_pygame()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    clock = pygame.time.Clock()
 
     #====================================== PLAYER ONE INITIALIZATION ==============================================#
     player_one = player.Player(scale=game_scale)
@@ -42,47 +45,49 @@ def main(game_scale=1):
     player_two_screen = pygame.Surface((screen.get_width(), screen.get_height()//2))
     player_two_background = pygame.transform.scale(pygame.image.load("Battleground3.png"), (SCREEN_WIDTH*5,SCREEN_HEIGHT*5))
     player_two_refresh_background = pygame.transform.scale(pygame.image.load("Battleground3.png"), (SCREEN_WIDTH * 5, SCREEN_HEIGHT * 5))
-
-
-    # Create the players
     player_two.x_position = screen.get_width()/2
     player_two.y_position = screen.get_height() - 150
-
 
     # Create test tile set for development
     tile_set = world_generator.WorldGenerator(level_files.level_two, scale=game_scale).world_tiles
 
-    # Create initial pygame objects
-    clock = pygame.time.Clock()
-
     while running:
+        # Check if game was quit
+        running = event_checker([player_one, player_two])
 
-        player_one_display_rect = pygame.Rect(player_one.x_position- SCREEN_WIDTH/2, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
+        # ========================= WINDOW PANNING SETUP ===============================
+        player_one_display_rect = pygame.Rect(player_one.x_position- SCREEN_WIDTH/2, 0, SCREEN_WIDTH, SCREEN_HEIGHT // 2)
         player_two_display_rect = pygame.Rect(player_two.x_position- SCREEN_WIDTH/2, SCREEN_HEIGHT //2 , SCREEN_WIDTH, SCREEN_HEIGHT // 2)
 
+        # ============================= WINDOW PANNING =================================
+        player_one_screen.blit(player_one_background , area=player_one_display_rect)
+        player_two_screen.blit(player_two_background, area=player_two_display_rect)
 
-        running = event_checker([player_one, player_two])                                            # Check if game was quit
-        player_one_screen.blit(player_one_background , area=player_one_display_rect)                 # Draw updated scene to screen
-        player_one_background.blit(player_one_refresh_background)                                    # Refresh the screen between frames
-
-        player_two_screen.blit(player_two_background , area=player_two_display_rect)
+        # ============================== DISPLAY RESET =================================
+        player_one_background.blit(player_one_refresh_background)
         player_two_background.blit(player_two_refresh_background)
 
+        # ============================= PLAYER MOVEMENT ================================
+        player_one.move_player(tile_set, screen)
+        player_two.move_player(tile_set, screen)
 
-        player_one.move_player(tile_set, screen)                    # Get movement from input and move player
-        physics.gravity(player_one)                                 # Apply gravity to player object
-        player_one.resolve_collision(tile_set, screen)              # Check for collisions with the world
-        player_one.display_player(player_one_background)            # Draw the player to the screen
+        # ================================ GRAVITY =====================================
+        physics.gravity(player_one)
+        physics.gravity(player_two)
 
-        player_two.move_player(tile_set, screen)                    # Get movement from input and move player
-        physics.gravity(player_two)                                 # Apply gravity to player object
-        player_two.resolve_collision(tile_set, screen)              # Check for collisions with the world
-        player_two.display_player(player_two_background)            # Draw the player to the screen
+        # ============================== COLLISIONS ====================================
+        player_one.resolve_collision(tile_set, screen)
+        player_two.resolve_collision(tile_set, screen)
 
+        # ======================= INDIVIDUAL PLAYER DISPLAY ============================
+        player_one.display_player(player_one_background)
+        player_two.display_player(player_two_background)
+
+        # ======================== COMBINED PLAYER DISPLAY =============================
         screen.blit(player_one_screen)
         screen.blit(player_two_screen, (0, screen.get_height() // 2))
 
-        # Other Display
+        # =========================== DISPLAY TILE MAP =================================
         for layer in tile_set:
             for tile in layer:
                 tile.draw_platform(player_one_background)
