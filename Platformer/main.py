@@ -49,7 +49,8 @@ def main(game_scale=1):
     player_two.y_position = screen.get_height() - 150
 
     # Create test tile set for development
-    tile_set = world_generator.WorldGenerator(level_files.level_two, scale=game_scale).world_tiles
+    player_one_tile_set = world_generator.WorldGenerator(level_files.player_one_level_two, scale=game_scale).world_tiles
+    player_two_tile_set = world_generator.WorldGenerator(level_files.player_two_level_two, scale=game_scale).world_tiles
 
     while running:
         # Check if game was quit
@@ -68,16 +69,16 @@ def main(game_scale=1):
         player_two_background.blit(player_two_refresh_background)
 
         # ============================= PLAYER MOVEMENT ================================
-        player_one.move_player(tile_set, screen)
-        player_two.move_player(tile_set, screen)
+        player_one.move_player(player_one_tile_set, screen)
+        player_two.move_player(player_two_tile_set, screen)
 
         # ================================ GRAVITY =====================================
         physics.gravity(player_one)
         physics.gravity(player_two)
 
         # ============================== COLLISIONS ====================================
-        player_one.resolve_collision(tile_set, screen)
-        player_two.resolve_collision(tile_set, screen)
+        player_one.resolve_collision(player_one_tile_set, screen)
+        player_two.resolve_collision(player_two_tile_set, screen)
 
         # ======================= INDIVIDUAL PLAYER DISPLAY ============================
         player_one.display_player(player_one_background)
@@ -88,10 +89,14 @@ def main(game_scale=1):
         screen.blit(player_two_screen, (0, screen.get_height() // 2))
 
         # =========================== DISPLAY TILE MAP =================================
-        for layer in tile_set:
+        for layer in player_one_tile_set:
             for tile in layer:
                 tile.draw_platform(player_one_background)
+
+        for layer in player_two_tile_set:
+            for tile in layer:
                 tile.draw_platform(player_two_background)
+
 
         pygame.display.update()
 
