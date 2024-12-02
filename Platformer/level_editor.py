@@ -1,21 +1,39 @@
 import pygame
 
-# ========================== SCREEN ===================================
-SCREEN_WIDTH = 1248
-SCREEN_HEIGHT = 576
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+class LevelEditor:
+    def __init__(self):
+        pygame.init()
+        # ======================== FILE PATH ==================================
+        self.working_directory = './game_assets/tile_files/'                # CHANGE ME FOR DIFFERENT SETS
+        self.tile_set_name = 'Tileset.png'                                  # CHANGE ME FOR DIFFERENT SETS
+        self.full_file_path = self.working_directory + self.tile_set_name
+        self.tile_set_image = pygame.image.load(self.full_file_path)
 
-# ======================== FILE PATH ==================================
-working_directory = './game_assets/tile_files/'
-tile_set_name = 'Tileset.png'
-full_file_path = working_directory + tile_set_name
-tile_set_image = pygame.image.load(full_file_path).convert()
+        # ======================= SCREEN DATA =================================
+        self.screen_width = 1248
+        self.screen_height = 576
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
 
-# ======================= TILE DATA ===================================
-tile_set_image_width = tile_set_image.get_width()
-tile_set_image_height = tile_set_image.get_height()
-tile_width, tile_height = 32, 32
-selected_tile = None
+        # ======================= TILE DATA ===================================
+        self.tile_set_image_width = self.tile_set_image.get_width()
+        self.tile_set_image_height = self.tile_set_image.get_height()
+        self.tile_width, self.tile_height = 32, 32
+        self.selected_tile = None
+
+    def select_tile(self, mouse_x, mouse_y):
+        if mouse_x <= self.tile_set_image_width and mouse_y <= self.tile_set_image_height:
+            x_tile_index = mouse_x // self.tile_width
+            y_tile_index = mouse_y // self.tile_height
+            if pygame.mouse.get_just_pressed()[0]:
+                self.selected_tile = x_tile_index + self.tile_set_image_width // self.tile_width * y_tile_index + 1
+
+    def draw_tile(self):
+        if self.selected_tile:
+            print(f"Loaded tile {self.selected_tile}")
+            if self.selected_tile < 10:
+                self.selected_tile = f'0{self.selected_tile}'
+            draw_tile = pygame.image.load(self.working_directory + f"Tile_{self.selected_tile}.png").convert()
+            self.screen.blit(draw_tile, (400, 400))
 
 def event_checker():
     events = pygame.event.get()
@@ -24,30 +42,16 @@ def event_checker():
             return False
     return True
 
-def select_tile(mouse_x, mouse_y, selected_tile):
-    if mouse_x <= tile_set_image_width and mouse_y <= tile_set_image_height:
-        x_tile_index = mouse_x // tile_width
-        y_tile_index = mouse_y // tile_height
-        if pygame.mouse.get_just_pressed()[0]:
-            selected_tile = x_tile_index + tile_set_image_width // tile_width * y_tile_index + 1
+level_editor = LevelEditor()
 
-            return selected_tile
-
-def draw_tile(selected_tile, screen):
-    if selected_tile:
-        print(f"Loaded tile {selected_tile}")
-        if selected_tile < 10:
-            selected_tile = f'0{selected_tile}'
-        draw_tile = pygame.image.load(working_directory + f"Tile_{selected_tile}.png").convert()
-        screen.blit(draw_tile, (400,400))
-
+pygame.init()
 running = True
 while running:
     running = event_checker()
-    screen.blit(tile_set_image, (0, 0))
     mouse_x, mouse_y = pygame.mouse.get_pos()
-    selected_tile = select_tile(mouse_x, mouse_y, selected_tile)
-    draw_tile(selected_tile, screen)
+    level_editor.select_tile(mouse_x, mouse_y)
+    level_editor.draw_tile()
+    level_editor.screen.blit(level_editor.tile_set_image)
     pygame.display.update()
 
 pygame.quit()
