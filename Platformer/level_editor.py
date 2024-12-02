@@ -20,10 +20,11 @@ class LevelEditor:
         self.tile_width, self.tile_height = 32, 32
         self.selected_tile = None
 
-    def select_tile(self, mouse_x, mouse_y):
-        if mouse_x <= self.tile_set_image_width and mouse_y <= self.tile_set_image_height:
-            x_tile_index = mouse_x // self.tile_width
-            y_tile_index = mouse_y // self.tile_height
+    def select_tile(self):
+        self.mouse_x , self.mouse_y = pygame.mouse.get_pos()
+        if self.mouse_x <= self.tile_set_image_width and self.mouse_y <= self.tile_set_image_height:
+            x_tile_index = self.mouse_x // self.tile_width
+            y_tile_index = self.mouse_y // self.tile_height
             if pygame.mouse.get_just_pressed()[0]:
                 self.selected_tile = x_tile_index + self.tile_set_image_width // self.tile_width * y_tile_index + 1
 
@@ -32,8 +33,10 @@ class LevelEditor:
             print(f"Loaded tile {self.selected_tile}")
             if self.selected_tile < 10:
                 self.selected_tile = f'0{self.selected_tile}'
-            draw_tile = pygame.image.load(self.working_directory + f"Tile_{self.selected_tile}.png").convert()
-            self.screen.blit(draw_tile, (400, 400))
+
+            if pygame.mouse.get_pressed()[0]:
+                draw_tile = pygame.image.load(self.working_directory + f"Tile_{self.selected_tile}.png").convert()
+                self.screen.blit(draw_tile, (self.mouse_x, self.mouse_y))
 
 def event_checker():
     events = pygame.event.get()
@@ -42,16 +45,17 @@ def event_checker():
             return False
     return True
 
-level_editor = LevelEditor()
+def main():
+    level_editor = LevelEditor()
 
-pygame.init()
-running = True
-while running:
-    running = event_checker()
-    mouse_x, mouse_y = pygame.mouse.get_pos()
-    level_editor.select_tile(mouse_x, mouse_y)
-    level_editor.draw_tile()
-    level_editor.screen.blit(level_editor.tile_set_image)
-    pygame.display.update()
+    running = True
+    while running:
+        running = event_checker()
+        level_editor.select_tile()
+        level_editor.draw_tile()
+        level_editor.screen.blit(level_editor.tile_set_image)
+        pygame.display.update()
+    pygame.quit()
 
-pygame.quit()
+if __name__ == '__main__':
+    main()
