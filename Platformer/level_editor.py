@@ -38,6 +38,14 @@ class LevelEditor:
                 draw_tile = pygame.image.load(self.working_directory + f"Tile_{self.selected_tile}.png").convert()
                 self.screen.blit(draw_tile, (self.mouse_x, self.mouse_y))
 
+    def draw_gridlines(self):
+        x_length = (self.screen_width - self.tile_set_image_width) // 32
+        y_length = self.screen_height // 32
+        for j in range(y_length):
+            for i in range(x_length):
+                pygame.draw.rect(self.screen, 'white', (self.tile_set_image_width+i*self.tile_width, j*self.tile_height, self.tile_width, self.tile_height),1)
+
+
 def event_checker():
     events = pygame.event.get()
     for event in events:
@@ -51,6 +59,7 @@ def main():
     running = True
     while running:
         running = event_checker()
+        level_editor.draw_gridlines()
         level_editor.select_tile()
         level_editor.draw_tile()
         level_editor.screen.blit(level_editor.tile_set_image)
