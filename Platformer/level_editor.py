@@ -1,14 +1,13 @@
 import pygame
 import game_tile
+import test_file
 import world_generator
 import level_files
 import copy
 
 # TO DO LIST:
 # -Add ability to delete drawn tiles
-# -Add ability to export level data
 # -Add camera pan to grid tiles
-# -Add save and restart buttons
 
 class LevelEditor:
     def __init__(self, font_size=12):
@@ -63,7 +62,9 @@ class LevelEditor:
         self.player_two_y_scale = 0.60
 
         self.current_level = 0
-        self.level_array = world_generator.WorldGenerator(level_files.player_one_level_set[self.current_level]).world_tiles
+        #self.level_array = world_generator.WorldGenerator(level_files.player_one_level_set[self.current_level]).world_tiles
+        self.level_array = world_generator.WorldGenerator(test_file.player_one_level_0).world_tiles
+
         self.original_level = copy.deepcopy(self.level_array)
 
     def select_tile(self):
@@ -80,7 +81,7 @@ class LevelEditor:
                 tile.draw_platform(self.grid_screen)
 
     def add_to_level(self):
-        if self.selected_tile and pygame.mouse.get_pressed()[0]:
+        if self.selected_tile and pygame.mouse.get_pressed()[0] and self.mouse_x > self.tile_set_image_width:
             level_x_index = (self.mouse_x - self.tile_set_image_width) // self.tile_width
             level_y_index = self.mouse_y // self.tile_height
 
@@ -96,6 +97,7 @@ class LevelEditor:
 
         self.screen.blit(self.grid_screen, (self.tile_set_image_width,0))
 
+    # ============================= DISPLAY METHODS =========================================
     def display_save_box(self):
         save_text = self.font.render("SAVE LEVEL", True, "white")
         save_rect = pygame.Rect(self.screen_width*self.save_x_scale, self.screen_height*self.save_y_scale, self.box_width, self.box_height)
@@ -115,6 +117,7 @@ class LevelEditor:
         player_two_rect = pygame.Rect(self.screen_width * self.player_two_x_scale, self.screen_height * self.player_two_y_scale, self.box_width, self.box_height)
         self.screen.blit(player_two_text, player_two_rect)
 
+    # ============================ BUTTON METHODS ===========================================
     def click_player_buttons(self):
         # Player one click detection
         if self.screen_width * self.player_one_x_scale < self.mouse_x < self.screen_width * self.player_one_x_scale + self.box_width:
@@ -134,7 +137,7 @@ class LevelEditor:
         if  self.screen_width * self.save_x_scale < self.mouse_x  < self.screen_width * self.save_x_scale + self.box_width:
             if self.screen_height * self.save_y_scale < self.mouse_y < self.screen_height * self.save_y_scale + self.box_height:
                 if pygame.mouse.get_just_pressed()[0]:
-                    with open("test_file.py", "a") as file:
+                    with open("test_file.py", "w") as file:
                         file.write(f"player_{self.selected_player}_level_{self.current_level} = ")
                         file.write(str(new_level_file) + "\n")
                         print("File saved!")
@@ -143,7 +146,9 @@ class LevelEditor:
         if self.screen_width * self.reset_x_scale < self.mouse_x < self.screen_width * self.reset_x_scale + self.box_width:
             if self.screen_height * self.reset_y_scale < self.mouse_y < self.screen_height * self.reset_y_scale + self.box_height:
                 if pygame.mouse.get_pressed()[0]:
-                    print("clicked reset button")
+                    print("pressed reset")
+                    self.screen.fill((0,0,0), (self.tile_set_image_width, 0, self.screen_width - self.tile_set_image_width, self.screen_height))
+                    self.level_array = copy.deepcopy(self.original_level)
 
 def event_checker(level_editor):
     events = pygame.event.get()
