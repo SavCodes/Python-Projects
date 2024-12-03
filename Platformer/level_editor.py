@@ -102,6 +102,26 @@ class LevelEditor:
                                          self.box_width, self.box_height, font_size=20,
                                          text=f"Editing: Player {self.selected_player} Level {self.current_level}")
 
+        # ====================== SPAWN BUTTON DATA ====================================
+        self.spawn_button_x_scale = 0.25
+        self.spawn_button_y_scale = 0.50
+        self.spawn_button_x_position = self.tile_set_image_width * self.spawn_button_x_scale
+        self.spawn_button_y_position = self.screen_height * self.spawn_button_y_scale
+        self.spawn_button = button.Button(self.screen, self.spawn_button_x_position, self.spawn_button_y_position,
+                                          self.box_width, self.box_height, font_size=15, text=f"SET SPAWN")
+
+        # ==================== OBJECTIVE BUTTON DATA ===================================
+        self.objective_button_x_scale = 0.75
+        self.objective_button_y_scale = 0.50
+        self.objective_button_x_position = self.tile_set_image_width * self.objective_button_x_scale
+        self.objective_button_y_position = self.screen_height * self.objective_button_y_scale
+        self.objective_button = button.Button(self.screen, self.objective_button_x_position, self.objective_button_y_position,
+                                          self.box_width, self.box_height, font_size=15, text=f"SET OBJECTIVE")
+
+        # ==================== PLAYER SPAWN LOGIC ==================================
+        self.player_spawn_set = False
+        self.player_spawn_selected = False
+
         # ========================================= NEEDS SORTING =====================================================
         #self.level_array = world_generator.WorldGenerator(level_files.player_one_level_set[self.current_level]).world_tiles
         self.level_array = world_generator.WorldGenerator(test_file.player_one_level_set[self.current_level]).world_tiles
@@ -127,10 +147,13 @@ class LevelEditor:
             self.level_array[level_y_index][level_x_index] = game_tile.Platform(tile_file, level_x_index*self.tile_width, level_y_index*self.tile_height)
 
         elif pygame.mouse.get_pressed()[2] and self.mouse_x > self.tile_set_image_width:
-            level_x_index = (self.mouse_x - self.tile_set_image_width) // self.tile_width
+            level_x_index = (self.mouse_x + self.camera_x_position - self.tile_set_image_width) // self.tile_width
             level_y_index = self.mouse_y // self.tile_height
             tile_file = self.working_directory + "Tile_00.png"
             self.level_array[level_y_index][level_x_index] = game_tile.Platform(tile_file, level_x_index*self.tile_width, level_y_index*self.tile_height)
+
+    def set_player_spawn(self):
+        pass
 
     # ============================= DISPLAY METHODS =========================================
     def display_gridlines(self):
@@ -182,6 +205,11 @@ class LevelEditor:
             self.notification_button.set_text("Level Reset")
             self.notification_button.display_button((0,0,0))
 
+    def check_spawn_button(self):
+        self.spawn_button.check_pressed(self.mouse_x, self.mouse_y)
+        if self.spawn_button.is_pressed:
+            self.player_spawn_selected = True
+
     def pan_camera(self):
         PANNING_SCREEN_WIDTH = 960
         PANNING_SCREEN_HEIGHT = 576
@@ -190,14 +218,13 @@ class LevelEditor:
 
         self.screen.blit(self.grid_screen, (self.tile_set_image_width,0), area=panning_display_rect)
 
-
 def event_checker(level_editor):
     # =================== HOLDING KEY LOGIC ========================
     keys = pygame.key.get_pressed()
     if keys[pygame.K_RIGHT] and level_editor.camera_x_position < level_editor.TOTAL_LEVEL_WIDTH:
-        level_editor.camera_x_position += 32
+        level_editor.camera_x_position += 16
     elif keys[pygame.K_LEFT] and level_editor.camera_x_position > 0:
-        level_editor.camera_x_position -= 32
+        level_editor.camera_x_position -= 16
 
     # =================== PRESSING KEY LOGIC =======================
     events = pygame.event.get()
@@ -240,13 +267,15 @@ def main():
         level_editor.player_two_button.display_button()
         level_editor.save_button.display_button()
         level_editor.reset_button.display_button()
+        level_editor.spawn_button.display_button()
+        level_editor.objective_button.display_button()
         level_editor.level_title_button.display_button((0,0,0))
-
 
         # ================================ BUTTON LOGIC CODE =====================================
         level_editor.check_save_button()
         level_editor.check_player_buttons()
         level_editor.check_reset_button()
+        level_editor.check_spawn_button()
 
         # ============================ FPS RELATED LOGIC =============================
         clock.tick(frame_rate)
