@@ -17,7 +17,7 @@ class LevelEditor:
     def __init__(self, font_size=12):
         # ======================== needs to be sorted ============================
         pygame.init()
-        self.frame_rate = 10
+        self.frame_rate = 300
         self.selected_player = "one"
 
         # ======================== TEXT ATTRIBUTES =============================
@@ -66,7 +66,6 @@ class LevelEditor:
         self.reset_button = button.Button(self.screen, self.reset_x_position, self.reset_y_position,
                                           self.box_width, self.box_height, text="RESET LEVEL")
 
-
         # ==================== PLAYER ONE BUTTON DATA ==============================
         self.player_one_x_scale = 0.10
         self.player_one_y_scale = 0.60
@@ -84,10 +83,16 @@ class LevelEditor:
                                                self.box_width, self.box_height, text="PLAYER TWO")
 
 
+        # =================== NOTIFICATION BUTTON DATA ==============================
+        self.notification_x_position = self.tile_set_image_width // 2
+        self.notification_y_position = self.screen_height * 0.80
+        self.notification_button = button.Button(self.screen, self.notification_x_position, self.notification_y_position,
+                                                 self.box_width, self.box_height, text="NOTIFICATION")
+
+
         self.current_level = 0
         #self.level_array = world_generator.WorldGenerator(level_files.player_one_level_set[self.current_level]).world_tiles
         self.level_array = world_generator.WorldGenerator(test_file.player_one_level_0).world_tiles
-
         self.original_level = copy.deepcopy(self.level_array)
 
     # ========================== EDITING LOGIC METHODS ======================================
@@ -109,6 +114,12 @@ class LevelEditor:
             tile_file = f'{self.working_directory}Tile_{self.selected_tile}.png'
             self.level_array[level_y_index][level_x_index] = game_tile.Platform(tile_file, level_x_index*self.tile_width, level_y_index*self.tile_height)
 
+        elif pygame.mouse.get_pressed()[2] and self.mouse_x > self.tile_set_image_width:
+            level_x_index = (self.mouse_x - self.tile_set_image_width) // self.tile_width
+            level_y_index = self.mouse_y // self.tile_height
+            tile_file = self.working_directory + "Tile_00.png"
+            self.level_array[level_y_index][level_x_index] = game_tile.Platform(tile_file, level_x_index*self.tile_width, level_y_index*self.tile_height)
+
     # ============================= DISPLAY METHODS =========================================
     def display_gridlines(self):
         for j in range(self.level_y_length):
@@ -116,51 +127,38 @@ class LevelEditor:
                 pygame.draw.rect(self.grid_screen, 'white',
                                  (i * self.tile_width, j * self.tile_height, self.tile_width, self.tile_height), 1)
 
-        self.screen.blit(self.grid_screen, (self.tile_set_image_width, 0))
-
     def display_tile(self):
         for layer in self.level_array:
             for tile in layer:
                 tile.draw_platform(self.grid_screen)
 
     # ============================ BUTTON METHODS ===========================================
-    def click_player_buttons(self):
+    def check_player_buttons(self):
         # Player one click detection
-        if self.player_one_x_position < self.mouse_x < self.player_one_x_position + self.box_width:
-            if self.player_one_y_position < self.mouse_y < self.player_one_y_position + self.box_height:
-                if pygame.mouse.get_pressed()[0]:
-                    self.selected_player = "one"
+        self.player_one_button.check_pressed(self.mouse_x, self.mouse_y)
+        if self.player_one_button.is_pressed:
+            self.selected_player = "one"
 
         # Player two click detection
-        if self.player_two_x_position < self.mouse_x < self.player_two_x_position + self.box_width:
-            if self.player_two_y_position < self.mouse_y < self.player_two_y_position + self.box_height:
-                if pygame.mouse.get_pressed()[0]:
-                    self.selected_player = "two"
+        self.player_two_button.check_pressed(self.mouse_x, self.mouse_y)
+        if self.player_two_button.is_pressed:
+            self.selected_player = "two"
 
-    def click_save_button(self):
-        new_level_file = copy.deepcopy(self.level_array)
+    def check_save_button(self):
         # Check if mouse is hovering button
-        if  self.save_x_position < self.mouse_x  < self.save_x_position + self.box_width:
-            if self.save_y_position < self.mouse_y < self.save_y_position + self.box_height:
-                if pygame.mouse.get_just_pressed()[0]:
-                    with open("test_file.py", "w") as file:
-                        file.write(f"player_{self.selected_player}_level_{self.current_level} = ")
-                        file.write(str(new_level_file) + "\n")
-                        print("File saved!")
-                    self.button_click_notification("File saved!")
+        self.save_button.check_pressed(self.mouse_x, self.mouse_y)
+        if self.save_button.is_pressed:
+            with open("test_file.py", "w") as file:
+                file.write(f"player_{self.selected_player}_level_{self.current_level} = ")
+                file.write(str(self.level_array) + "\n")
+                print("File saved!")
 
-    def click_reset_button(self):
-        if self.reset_x_position < self.mouse_x < self.reset_x_position + self.box_width:
-            if self.reset_y_position < self.mouse_y < self.reset_y_position + self.box_height:
-                if pygame.mouse.get_pressed()[0]:
-                    print("pressed reset")
-                    self.grid_screen.fill((0,0,0))
-                    self.level_array = copy.deepcopy(self.original_level)
-
-    def button_click_notification(self, click_text):
-        notification_text = self.font.render(click_text, True, "white")
-        notification_rect = notification_text.get_rect(x=self.tile_set_image_width // 2, y=self.screen_height * 0.80)
-        self.screen.blit(notification_text, notification_rect)
+    def check_reset_button(self):
+        self.reset_button.check_pressed(self.mouse_x, self.mouse_y)
+        if self.reset_button.is_pressed:
+            print("pressed reset")
+            self.grid_screen.fill((0,0,0))
+            self.level_array = copy.deepcopy(self.original_level)
 
 def event_checker(level_editor):
     events = pygame.event.get()
@@ -184,8 +182,10 @@ def main():
         level_editor.select_tile()
 
         # ================================== DISPLAY RELATED CODE ==================================
+        level_editor.grid_screen.fill((0,0,0))
         level_editor.display_gridlines()
         level_editor.display_tile()
+        level_editor.screen.blit(level_editor.grid_screen, (level_editor.tile_set_image_width, 0))
         level_editor.screen.blit(level_editor.tile_set_image)
 
         # ================================= BUTTON DISPLAY CODE ===================================
@@ -193,16 +193,16 @@ def main():
         level_editor.player_two_button.display_button()
         level_editor.save_button.display_button()
         level_editor.reset_button.display_button()
-        pygame.display.update()
+
 
         # ================================ BUTTON LOGIC CODE =====================================
-        level_editor.player_one_button.check_pressed(level_editor.mouse_x, level_editor.mouse_y)
-        level_editor.player_two_button.check_pressed(level_editor.mouse_x, level_editor.mouse_y)
-        level_editor.save_button.check_pressed(level_editor.mouse_x, level_editor.mouse_y)
-        level_editor.reset_button.check_pressed(level_editor.mouse_x, level_editor.mouse_y)
+        level_editor.check_save_button()
+        level_editor.check_player_buttons()
+        level_editor.check_reset_button()
 
         # ============================ FPS RELATED LOGIC =============================
         clock.tick(frame_rate)
+        pygame.display.update()
 
     pygame.quit()
 
