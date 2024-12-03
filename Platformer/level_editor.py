@@ -7,7 +7,8 @@ import copy
 import button
 
 # TO DO LIST:
-# -Add ability to export level data
+# -Add mechanic to set player spawn
+# -Add mechanic to set level objective
 
 
 class LevelEditor:
@@ -85,7 +86,6 @@ class LevelEditor:
         self.player_two_button = button.Button(self.screen, self.player_two_x_position, self.player_two_y_position,
                                                self.box_width, self.box_height, text="PLAYER TWO")
 
-
         # =================== NOTIFICATION BUTTON DATA ==============================
         self.notification_x_position = self.tile_set_image_width * 0.50
         self.notification_y_position = self.screen_height * 0.80
@@ -136,8 +136,13 @@ class LevelEditor:
     def display_gridlines(self):
         for j in range(self.level_y_length):
             for i in range(self.level_x_length):
-                pygame.draw.rect(self.grid_screen, 'white',
-                                 (i * self.tile_width, j * self.tile_height, self.tile_width, self.tile_height), 1)
+                if (i + j) % 2 == 0:
+                    color = (255,255,255)
+                else:
+                    color = (50,50,50)
+
+                pygame.draw.rect(self.grid_screen, color,
+                                 (i * self.tile_width, j * self.tile_height, self.tile_width, self.tile_height))
 
     def display_tile(self):
         for layer in self.level_array:
@@ -224,8 +229,8 @@ def main():
         # ================================== DISPLAY RELATED CODE ==================================
         level_editor.grid_screen.fill((0,0,0))
         level_editor.screen.fill((0, 0, 0))
-        level_editor.display_tile()
         level_editor.display_gridlines()
+        level_editor.display_tile()
         level_editor.screen.blit(level_editor.grid_screen, (level_editor.tile_set_image_width, 0))
         level_editor.pan_camera()
         level_editor.screen.blit(level_editor.tile_set_image)
