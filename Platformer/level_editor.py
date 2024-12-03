@@ -199,7 +199,7 @@ def event_checker(level_editor):
     for event in events:
         if event.type == pygame.QUIT:
             return False
-        elif event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_UP and level_editor.current_level < len(test_file.player_one_level_set) - 1:
             level_editor.current_level += 1
             level_editor.level_array = world_generator.WorldGenerator(test_file.player_one_level_set[level_editor.current_level]).world_tiles
             level_editor.level_title_button.set_text(f"Editing: Player {level_editor.selected_player} Level {level_editor.current_level}")
