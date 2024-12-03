@@ -4,6 +4,7 @@ import test_file
 import world_generator
 import level_files
 import copy
+import button
 
 # TO DO LIST:
 # -Add ability to delete drawn tiles
@@ -50,28 +51,37 @@ class LevelEditor:
         # ==================== SAVE BUTTON DATA ===============================
         self.box_width = 100
         self.box_height = 40
-        self.save_x_scale = 0.05
+        self.save_x_scale = 0.10
         self.save_y_scale = 0.70
         self.save_x_position = self.screen_width * self.save_x_scale
         self.save_y_position = self.screen_height * self.save_y_scale
+        self.save_button = button.Button(self.screen, self.save_x_position, self.save_y_position,
+                                         self.box_width, self.box_height, text="SAVE LEVEL")
 
         # ==================== RESET BUTTON DATA ===============================
-        self.reset_x_scale = 0.15
+        self.reset_x_scale = 0.20
         self.reset_y_scale = 0.70
         self.reset_x_position = self.screen_width * self.reset_x_scale
         self.reset_y_position = self.screen_height * self.reset_y_scale
+        self.reset_button = button.Button(self.screen, self.reset_x_position, self.reset_y_position,
+                                          self.box_width, self.box_height, text="RESET LEVEL")
+
 
         # ==================== PLAYER ONE BUTTON DATA ==============================
-        self.player_one_x_scale = 0.05
+        self.player_one_x_scale = 0.10
         self.player_one_y_scale = 0.60
         self.player_one_x_position = self.screen_width * self.player_one_x_scale
         self.player_one_y_position = self.screen_height * self.player_one_y_scale
+        self.player_one_button = button.Button(self.screen, self.player_one_x_position, self.player_one_y_position,
+                                               self.box_width, self.box_height, text="PLAYER ONE")
 
         # ==================== PLAYER TWO BUTTON DATA ==============================
-        self.player_two_x_scale = 0.15
+        self.player_two_x_scale = 0.20
         self.player_two_y_scale = 0.60
         self.player_two_x_position = self.screen_width * self.player_two_x_scale
         self.player_two_y_position = self.screen_height * self.player_two_y_scale
+        self.player_two_button = button.Button(self.screen, self.player_two_x_position, self.player_two_y_position,
+                                               self.box_width, self.box_height, text="PLAYER TWO")
 
 
         self.current_level = 0
@@ -113,25 +123,6 @@ class LevelEditor:
             for tile in layer:
                 tile.draw_platform(self.grid_screen)
 
-    def display_save_box(self):
-        save_text = self.font.render("SAVE LEVEL", True, "white")
-        save_rect = pygame.Rect(self.save_x_position, self.save_y_position, self.box_width, self.box_height)
-        self.screen.blit(save_text, save_rect)
-
-    def display_reset_box(self):
-        reset_text = self.font.render("RESET LEVEL", True, "white")
-        reset_rect = pygame.Rect(self.reset_x_position, self.reset_y_position, self.box_width, self.box_height)
-        self.screen.blit(reset_text, reset_rect)
-
-    def display_player_options(self):
-        player_one_text = self.font.render("PLAYER ONE", True, "white")
-        player_one_rect = pygame.Rect(self.player_one_x_position, self.player_one_y_position, self.box_width, self.box_height)
-        self.screen.blit(player_one_text, player_one_rect)
-
-        player_two_text = self.font.render("PLAYER TWO", True, "white")
-        player_two_rect = pygame.Rect(self.player_two_x_position, self.player_two_y_position, self.box_width, self.box_height)
-        self.screen.blit(player_two_text, player_two_rect)
-
     # ============================ BUTTON METHODS ===========================================
     def click_player_buttons(self):
         # Player one click detection
@@ -156,8 +147,7 @@ class LevelEditor:
                         file.write(f"player_{self.selected_player}_level_{self.current_level} = ")
                         file.write(str(new_level_file) + "\n")
                         print("File saved!")
-                    # file_saved_text = self.font.render("Level Saved!", True, "white")
-                    # filed_saved_rect = file_saved_text.get_rect()
+                    self.button_click_notification("File saved!")
 
     def click_reset_button(self):
         if self.reset_x_position < self.mouse_x < self.reset_x_position + self.box_width:
@@ -167,6 +157,10 @@ class LevelEditor:
                     self.grid_screen.fill((0,0,0))
                     self.level_array = copy.deepcopy(self.original_level)
 
+    def button_click_notification(self, click_text):
+        notification_text = self.font.render(click_text, True, "white")
+        notification_rect = notification_text.get_rect(x=self.tile_set_image_width // 2, y=self.screen_height * 0.80)
+        self.screen.blit(notification_text, notification_rect)
 
 def event_checker(level_editor):
     events = pygame.event.get()
@@ -188,19 +182,24 @@ def main():
         running = event_checker(level_editor)
         level_editor.add_to_level()
         level_editor.select_tile()
-        level_editor.click_player_buttons()
-        level_editor.click_reset_button()
-        level_editor.click_save_button()
 
         # ================================== DISPLAY RELATED CODE ==================================
         level_editor.display_gridlines()
         level_editor.display_tile()
         level_editor.screen.blit(level_editor.tile_set_image)
-        level_editor.display_player_options()
-        level_editor.display_save_box()
-        level_editor.display_reset_box()
+
+        # ================================= BUTTON DISPLAY CODE ===================================
+        level_editor.player_one_button.display_button()
+        level_editor.player_two_button.display_button()
+        level_editor.save_button.display_button()
+        level_editor.reset_button.display_button()
         pygame.display.update()
 
+        # ================================ BUTTON LOGIC CODE =====================================
+        level_editor.player_one_button.check_pressed(level_editor.mouse_x, level_editor.mouse_y)
+        level_editor.player_two_button.check_pressed(level_editor.mouse_x, level_editor.mouse_y)
+        level_editor.save_button.check_pressed(level_editor.mouse_x, level_editor.mouse_y)
+        level_editor.reset_button.check_pressed(level_editor.mouse_x, level_editor.mouse_y)
 
         # ============================ FPS RELATED LOGIC =============================
         clock.tick(frame_rate)
