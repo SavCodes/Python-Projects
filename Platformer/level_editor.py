@@ -8,18 +8,17 @@ import button
 
 # TO DO LIST:
 # -Add ability to export level data
-# -Add camera pan to grid tiles
-# -Add a "currently editing `level name`" display
+
 
 class LevelEditor:
     def __init__(self, font_size=12):
         # ======================== needs to be sorted ============================
         pygame.init()
         self.frame_rate = 300
-        self.selected_player = "one"
-        self.camera_y_position = 0
 
         # ======================== CAMERA PANNING ATTRIBUTES ===================
+        self.camera_y_position = 0
+        self.camera_x_position = 0
         self.TOTAL_LEVEL_WIDTH = 960 * 5
         self.TOTAL_LEVEL_HEIGHT = 576 * 3
 
@@ -70,6 +69,7 @@ class LevelEditor:
                                           self.box_width, self.box_height, text="RESET LEVEL")
 
         # ==================== PLAYER ONE BUTTON DATA ==============================
+        self.selected_player = "one"
         self.player_one_x_scale = 0.25
         self.player_one_y_scale = 0.60
         self.player_one_x_position = self.tile_set_image_width * self.player_one_x_scale
@@ -92,14 +92,20 @@ class LevelEditor:
         self.notification_button = button.Button(self.screen, self.notification_x_position, self.notification_y_position,
                                                  self.box_width, self.box_height, text="NOTIFICATION")
 
-
+        # =================== CURRENT LEVEL BUTTON DATA =============================
+        self.level_title_x_scale = 0.50
+        self.level_title_y_scale = 0.90
+        self.current_level = 0
+        self.level_title_x_position = self.tile_set_image_width * self.save_x_scale
+        self.level_title_y_position = self.screen_height * self.level_title_y_scale
+        self.level_title_button = button.Button(self.screen, self.level_title_x_position, self.level_title_y_position,
+                                         self.box_width, self.box_height, font_size=20,
+                                         text=f"Editing: Player {self.selected_player} Level {self.current_level}")
 
         # ========================================= NEEDS SORTING =====================================================
-        self.current_level = 0
         #self.level_array = world_generator.WorldGenerator(level_files.player_one_level_set[self.current_level]).world_tiles
-        self.level_array = world_generator.WorldGenerator(test_file.player_one_level_0).world_tiles
+        self.level_array = world_generator.WorldGenerator(test_file.player_one_level_set[self.current_level]).world_tiles
         self.original_level = copy.deepcopy(self.level_array)
-        self.camera_x_position = 0
 
     # ========================== EDITING LOGIC METHODS ======================================
     def select_tile(self):
@@ -145,31 +151,31 @@ class LevelEditor:
         if self.player_one_button.is_pressed:
             self.selected_player = "one"
             self.notification_button.set_text("Player One Selected")
-            self.notification_button.display_button()
+            self.notification_button.display_button((0,0,0))
 
         # Player two click detection
         self.player_two_button.check_pressed(self.mouse_x, self.mouse_y)
         if self.player_two_button.is_pressed:
             self.selected_player = "two"
             self.notification_button.set_text("Player Two Selected")
-            self.notification_button.display_button()
+            self.notification_button.display_button((0,0,0))
 
     def check_save_button(self):
         # Check if mouse is hovering button
         self.save_button.check_pressed(self.mouse_x, self.mouse_y)
         if self.save_button.is_pressed:
-            with open("test_file.py", "w") as file:
+            with open("test_file.py", "a") as file:
                 file.write(f"player_{self.selected_player}_level_{self.current_level} = ")
                 file.write(str(self.level_array) + "\n")
             self.notification_button.set_text("Level Saved")
-            self.notification_button.display_button()
+            self.notification_button.display_button((0,0,0))
 
     def check_reset_button(self):
         self.reset_button.check_pressed(self.mouse_x, self.mouse_y)
         if self.reset_button.is_pressed:
             self.level_array = copy.deepcopy(self.original_level)
             self.notification_button.set_text("Level Reset")
-            self.notification_button.display_button()
+            self.notification_button.display_button((0,0,0))
 
     def pan_camera(self):
         PANNING_SCREEN_WIDTH = 960
@@ -181,16 +187,26 @@ class LevelEditor:
 
 
 def event_checker(level_editor):
-    events = pygame.event.get()
+    # =================== HOLDING KEY LOGIC ========================
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_RIGHT]:
-        level_editor.camera_x_position += 15
-    elif keys[pygame.K_LEFT]:
-        level_editor.camera_x_position -= 15
+    if keys[pygame.K_RIGHT] and level_editor.camera_x_position < level_editor.TOTAL_LEVEL_WIDTH:
+        level_editor.camera_x_position += 32
+    elif keys[pygame.K_LEFT] and level_editor.camera_x_position > 0:
+        level_editor.camera_x_position -= 32
 
+    # =================== PRESSING KEY LOGIC =======================
+    events = pygame.event.get()
     for event in events:
         if event.type == pygame.QUIT:
             return False
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
+            level_editor.current_level += 1
+            level_editor.level_array = world_generator.WorldGenerator(test_file.player_one_level_set[level_editor.current_level]).world_tiles
+            level_editor.level_title_button.set_text(f"Editing: Player {level_editor.selected_player} Level {level_editor.current_level}")
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN and level_editor.current_level > 0:
+            level_editor.current_level -= 1
+            level_editor.level_title_button.set_text(f"Editing: Player {level_editor.selected_player} Level {level_editor.current_level}")
+            level_editor.level_array = world_generator.WorldGenerator(test_file.player_one_level_set[level_editor.current_level]).world_tiles
 
     return True
 
@@ -204,7 +220,6 @@ def main():
         running = event_checker(level_editor)
         level_editor.add_to_level()
         level_editor.select_tile()
-
 
         # ================================== DISPLAY RELATED CODE ==================================
         level_editor.grid_screen.fill((0,0,0))
@@ -220,7 +235,7 @@ def main():
         level_editor.player_two_button.display_button()
         level_editor.save_button.display_button()
         level_editor.reset_button.display_button()
-
+        level_editor.level_title_button.display_button((0,0,0))
 
 
         # ================================ BUTTON LOGIC CODE =====================================
@@ -230,7 +245,6 @@ def main():
 
         # ============================ FPS RELATED LOGIC =============================
         clock.tick(frame_rate)
-
         pygame.display.update()
 
     pygame.quit()
