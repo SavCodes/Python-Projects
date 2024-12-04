@@ -50,6 +50,14 @@ def load_backgrounds():
         background_images.append(image)
     return background_images
 
+def display_tile_set(player):
+    for layer in player.tile_set[max(player.y_ind-Y_WINDOW_PANNING_INDEX,0):player.y_ind+Y_WINDOW_PANNING_INDEX]:
+        for tile in layer[
+                    max(player.x_ind - X_WINDOW_PANNING_INDEX, 0):min(player.x_ind + X_WINDOW_PANNING_INDEX,
+                                                                          len(layer))]:
+            if tile.tile_number != "00":
+                tile.draw_platform(player.play_surface)
+
 def main(game_scale=1):
     running = True
     screen = pygame.display.set_mode((PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT))
@@ -143,17 +151,9 @@ def main(game_scale=1):
         player_one.display_player(player_one.play_surface)
         player_two.display_player(player_two.play_surface)
 
-        # ====================== DISPLAY PLAYER ONE TILE MAP =================================
-        for layer in player_one.tile_set[max(player_one.y_ind-Y_WINDOW_PANNING_INDEX,0) :player_one.y_ind+Y_WINDOW_PANNING_INDEX]:
-            for tile in layer[max(player_one.x_ind-X_WINDOW_PANNING_INDEX,0):min(player_one.x_ind+X_WINDOW_PANNING_INDEX, len(layer))]:
-                if tile.tile_number != "00":
-                    tile.draw_platform(player_one.play_surface)
-
-        # ====================== DISPLAY PLAYER TWO TILE MAP =================================
-        for layer in player_two.tile_set[max(player_two.y_ind-Y_WINDOW_PANNING_INDEX,0):player_two.y_ind+Y_WINDOW_PANNING_INDEX]:
-            for tile in layer[max(player_two.x_ind-X_WINDOW_PANNING_INDEX,0):player_two.x_ind+X_WINDOW_PANNING_INDEX]:
-                if tile.is_collidable:
-                    tile.draw_platform(player_two.play_surface)
+        # ====================== DISPLAY TILE SETS =================================
+        display_tile_set(player_one)
+        display_tile_set(player_two)
 
         # ======================== COMBINED PLAYER DISPLAY =============================
         screen.blit(player_one_screen)
