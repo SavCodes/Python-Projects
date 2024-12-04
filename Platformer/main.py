@@ -61,6 +61,9 @@ def display_background(player):
         player.x_position - PANNING_SCREEN_WIDTH // 2, player.y_position - PANNING_SCREEN_HEIGHT // 4),
                                  area=display_rect)
 
+def pan_window(player, player_screen):
+    display_rect = pygame.Rect(player.x_position - PANNING_SCREEN_WIDTH/2, player.y_position - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT // 2)
+    player_screen.blit(player.play_surface, area=display_rect)
 
 def main(game_scale=1):
     running = True
@@ -75,15 +78,12 @@ def main(game_scale=1):
     player_one.play_surface = pygame.Surface((SCREEN_WIDTH , SCREEN_HEIGHT))
     player_one.foreground = pygame.Surface((SCREEN_WIDTH , SCREEN_HEIGHT))
 
-
     #====================================== PLAYER TWO INITIALIZATION ==============================================#
     player_two = player.Player(scale=game_scale)
     player_two_screen = pygame.Surface((screen.get_width(), screen.get_height()//2))
     player_two.play_surface = pygame.Surface((SCREEN_WIDTH , SCREEN_HEIGHT))
     player_two.x_position = PANNING_SCREEN_WIDTH * 5 - 500
     player_two.play_surface.convert()
-    player_two.background = pygame.Surface((SCREEN_WIDTH , SCREEN_HEIGHT))
-    player_two.foreground = pygame.Surface((SCREEN_WIDTH , SCREEN_HEIGHT))
 
     #======================================== PLAYER ONE BACKGROUNDS ================================================
     player_one.background_list = load_backgrounds()
@@ -104,31 +104,12 @@ def main(game_scale=1):
     player_two_test_objective = level_objective.LevelObjective(player_two, 300,100)
 
     while running:
-
-        player_one.get_player_movement()
-        player_two.get_player_movement()
-
-
-        # ====================== DISPLAY LEVEL OBJECTIVES ==============================
-        player_one_test_objective.display_objective(player_one.play_surface)
-        player_one_test_objective.check_objective_collision()
-        player_two_test_objective.display_objective(player_two.play_surface)
-        player_two_test_objective.check_objective_collision()
-        level_objective.check_level_complete(player_one, player_two)
-
         # ========================= CHECK FOR GAME INPUT ===============================
         running = event_checker(player_one, player_two)
 
-        # ========================= WINDOW PANNING SETUP ===============================
-        player_one_display_rect = pygame.Rect(player_one.x_position- PANNING_SCREEN_WIDTH/2, player_one.y_position - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT // 2)
-        player_two_display_rect = pygame.Rect(player_two.x_position- PANNING_SCREEN_WIDTH/2, player_two.y_position - PANNING_SCREEN_HEIGHT // 4 , PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT // 2)
-
-
-        # ============================= WINDOW PANNING =================================
-        player_one_screen.blit(player_one.play_surface , area=player_one_display_rect)
-        player_two_screen.blit(player_two.play_surface, area=player_two_display_rect)
-
         # ============================= PLAYER MOVEMENT ================================
+        player_one.get_player_movement()
+        player_two.get_player_movement()
         player_one.move_player(player_one.tile_set, screen)
         player_two.move_player(player_two.tile_set, screen)
 
@@ -140,21 +121,32 @@ def main(game_scale=1):
         player_one.resolve_collision(player_one.tile_set, screen)
         player_two.resolve_collision(player_two.tile_set, screen)
 
-        # ============================== DISPLAY RESET =================================
+        # ============================= WINDOW PANNING =================================
+        pan_window(player_one, player_one_screen)
+        pan_window(player_two, player_two_screen)
+
+        # ============================ DISPLAY RESET ====================================
         player_one.play_surface.fill((0,0,0))
         player_two.play_surface.fill((0,0,0))
 
-        # ============================= BACKGROUND DISPLAY =============================
+        # ========================= DISPLAY BACKGROUND ==================================
         display_background(player_one)
         display_background(player_two)
+
+        # ========================= DISPLAY TILE SET ====================================
+        display_tile_set(player_one)
+        display_tile_set(player_two)
+
+        # ====================== DISPLAY LEVEL OBJECTIVES ===============================
+        player_one_test_objective.display_objective(player_one.play_surface)
+        player_one_test_objective.check_objective_collision()
+        player_two_test_objective.display_objective(player_two.play_surface)
+        player_two_test_objective.check_objective_collision()
+        level_objective.check_level_complete(player_one, player_two)
 
         # ======================= INDIVIDUAL PLAYER DISPLAY ============================
         player_one.display_player(player_one.play_surface)
         player_two.display_player(player_two.play_surface)
-
-        # ====================== DISPLAY TILE SETS =================================
-        display_tile_set(player_one)
-        display_tile_set(player_two)
 
         # ======================== COMBINED PLAYER DISPLAY =============================
         screen.blit(player_one_screen)
