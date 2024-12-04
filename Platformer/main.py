@@ -21,12 +21,6 @@ SCREEN_HEIGHT = PANNING_SCREEN_HEIGHT * 3
 X_WINDOW_PANNING_INDEX = PANNING_SCREEN_WIDTH // (32 * 2 * GAME_SCALE) + 1
 Y_WINDOW_PANNING_INDEX = PANNING_SCREEN_HEIGHT // (32 * 4 * GAME_SCALE) + 1
 
-# ======================================= CREATE INSTRUCTION TEXT =====================================================
-arrow_key_intructions = game_text.BouncingText(PANNING_SCREEN_WIDTH//2 - 200, PANNING_SCREEN_HEIGHT + (GAME_SCALE * 32 * 7/4), "Use the Left and Right arrow keys to move")
-wasd_intructions = game_text.BouncingText(PANNING_SCREEN_WIDTH * 5 - 250, PANNING_SCREEN_HEIGHT + (GAME_SCALE * 32 * 7/4), "Use the A and D to move left and right")
-player_one_jump_instructions = game_text.BouncingText(PANNING_SCREEN_WIDTH//2 + 800, PANNING_SCREEN_HEIGHT + (GAME_SCALE * 32 * 7/4), " Use the Up arrow key to jump ")
-player_two_jump_instructions = game_text.BouncingText(PANNING_SCREEN_WIDTH * 5 - 1200, PANNING_SCREEN_HEIGHT + (GAME_SCALE * 32 * 7/4), " Use the Up arrow key to jump ")
-
 
 def initialize_pygame():
     pygame.init()
@@ -58,6 +52,16 @@ def display_tile_set(player):
             if tile.tile_number != "00":
                 tile.draw_platform(player.play_surface)
 
+def display_background(player):
+    for index, image in enumerate(player.background_list[::-1], 1):
+        display_rect = pygame.Rect((player.x_position - PANNING_SCREEN_WIDTH / 2) * index * .2,
+                                   player.y_position + 400 - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH,
+                                   PANNING_SCREEN_HEIGHT // 2)
+        player.play_surface.blit(image, (
+        player.x_position - PANNING_SCREEN_WIDTH // 2, player.y_position - PANNING_SCREEN_HEIGHT // 4),
+                                 area=display_rect)
+
+
 def main(game_scale=1):
     running = True
     screen = pygame.display.set_mode((PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT))
@@ -71,8 +75,6 @@ def main(game_scale=1):
     player_one.play_surface = pygame.Surface((SCREEN_WIDTH , SCREEN_HEIGHT))
     player_one.foreground = pygame.Surface((SCREEN_WIDTH , SCREEN_HEIGHT))
 
-    #======================================== PLAYER ONE BACKGROUNDS ================================================
-    player_one.background_list = load_backgrounds()
 
     #====================================== PLAYER TWO INITIALIZATION ==============================================#
     player_two = player.Player(scale=game_scale)
@@ -82,6 +84,10 @@ def main(game_scale=1):
     player_two.play_surface.convert()
     player_two.background = pygame.Surface((SCREEN_WIDTH , SCREEN_HEIGHT))
     player_two.foreground = pygame.Surface((SCREEN_WIDTH , SCREEN_HEIGHT))
+
+    #======================================== PLAYER ONE BACKGROUNDS ================================================
+    player_one.background_list = load_backgrounds()
+    player_two.background_list = load_backgrounds()
 
     #=============================== CONVERT IMAGES FOR ENGINE OPTIMIZATION ======================================
     player_one.play_surface.convert()
@@ -138,14 +144,9 @@ def main(game_scale=1):
         player_one.play_surface.fill((0,0,0))
         player_two.play_surface.fill((0,0,0))
 
-        # ============================= BACKGROUND DISPLAY
-        #display_rect = pygame.Rect(player_one.x_position- PANNING_SCREEN_WIDTH/2, player_one.y_position + 400 - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT // 2)
-        for index, image in enumerate(player_one.background_list[::-1], 1):
-            display_rect = pygame.Rect((player_one.x_position - PANNING_SCREEN_WIDTH / 2) * index * .2,
-                                       player_one.y_position + 400 - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH,
-                                       PANNING_SCREEN_HEIGHT // 2)
-
-            player_one.play_surface.blit(image, (player_one.x_position - PANNING_SCREEN_WIDTH // 2, player_one.y_position-PANNING_SCREEN_HEIGHT//4), area=display_rect)
+        # ============================= BACKGROUND DISPLAY =============================
+        display_background(player_one)
+        display_background(player_two)
 
         # ======================= INDIVIDUAL PLAYER DISPLAY ============================
         player_one.display_player(player_one.play_surface)
@@ -177,3 +178,10 @@ if __name__ == '__main__':
 # wasd_intructions.display_text(player_two.play_surface)
 # player_one_jump_instructions.display_text(player_one.play_surface)
 # player_two_jump_instructions.display_text(player_two.play_surface)
+
+# # ======================================= CREATE INSTRUCTION TEXT =====================================================
+# arrow_key_intructions = game_text.BouncingText(PANNING_SCREEN_WIDTH//2 - 200, PANNING_SCREEN_HEIGHT + (GAME_SCALE * 32 * 7/4), "Use the Left and Right arrow keys to move")
+# wasd_intructions = game_text.BouncingText(PANNING_SCREEN_WIDTH * 5 - 250, PANNING_SCREEN_HEIGHT + (GAME_SCALE * 32 * 7/4), "Use the A and D to move left and right")
+# player_one_jump_instructions = game_text.BouncingText(PANNING_SCREEN_WIDTH//2 + 800, PANNING_SCREEN_HEIGHT + (GAME_SCALE * 32 * 7/4), " Use the Up arrow key to jump ")
+# player_two_jump_instructions = game_text.BouncingText(PANNING_SCREEN_WIDTH * 5 - 1200, PANNING_SCREEN_HEIGHT + (GAME_SCALE * 32 * 7/4), " Use the Up arrow key to jump ")
+
