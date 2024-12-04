@@ -12,6 +12,7 @@ import test_file
 #   -Create pause menu
 #   -Add collision detection for slanted blocks
 #   -Add panning window clamp for player screens
+#   -Add wall slide/jump mechanic for player
 
 GAME_SCALE = 2
 PANNING_SCREEN_WIDTH = 960
@@ -20,7 +21,6 @@ SCREEN_WIDTH = PANNING_SCREEN_WIDTH * 5
 SCREEN_HEIGHT = PANNING_SCREEN_HEIGHT * 3
 X_WINDOW_PANNING_INDEX = PANNING_SCREEN_WIDTH // (32 * 2 * GAME_SCALE) + 1
 Y_WINDOW_PANNING_INDEX = PANNING_SCREEN_HEIGHT // (32 * 4 * GAME_SCALE) + 1
-
 
 def initialize_pygame():
     pygame.init()
@@ -54,15 +54,23 @@ def display_tile_set(player):
 
 def display_background(player):
     for index, image in enumerate(player.background_list[::-1], 1):
-        display_rect = pygame.Rect((player.x_position - PANNING_SCREEN_WIDTH / 2) * index * .2,
-                                   player.y_position + 400 - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH,
-                                   PANNING_SCREEN_HEIGHT // 2)
-        player.play_surface.blit(image, (
-        player.x_position - PANNING_SCREEN_WIDTH // 2, player.y_position - PANNING_SCREEN_HEIGHT // 4),
-                                 area=display_rect)
+        if player.x_position <= PANNING_SCREEN_WIDTH // 2:
+            x_start = 0
+        else:
+            x_start = player.x_position - PANNING_SCREEN_WIDTH // 2
+        display_rect = pygame.Rect(x_start * index * .2, player.y_position + 400 - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT // 2)
+        player.play_surface.blit(image, (x_start, player.y_position - PANNING_SCREEN_HEIGHT // 4), area=display_rect)
 
 def pan_window(player, player_screen):
-    display_rect = pygame.Rect(player.x_position - PANNING_SCREEN_WIDTH/2, player.y_position - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT // 2)
+    if player.x_position <= PANNING_SCREEN_WIDTH // 2:
+        x_start = 0
+
+    elif player.x_position + PANNING_SCREEN_WIDTH // 2 > SCREEN_WIDTH:
+        x_start = SCREEN_WIDTH - PANNING_SCREEN_WIDTH
+    else :
+        x_start = player.x_position - PANNING_SCREEN_WIDTH/2
+
+    display_rect = pygame.Rect(x_start, player.y_position - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT // 2)
     player_screen.blit(player.play_surface, area=display_rect)
 
 def main(game_scale=1):
@@ -76,7 +84,6 @@ def main(game_scale=1):
     player_one = player.Player(scale=game_scale, arrow_controls=False)
     player_one_screen = pygame.Surface((screen.get_width(), screen.get_height()//2))
     player_one.play_surface = pygame.Surface((SCREEN_WIDTH , SCREEN_HEIGHT))
-    player_one.foreground = pygame.Surface((SCREEN_WIDTH , SCREEN_HEIGHT))
 
     #====================================== PLAYER TWO INITIALIZATION ==============================================#
     player_two = player.Player(scale=game_scale)
@@ -139,10 +146,7 @@ def main(game_scale=1):
 
         # ====================== DISPLAY LEVEL OBJECTIVES ===============================
         player_one_test_objective.display_objective(player_one.play_surface)
-        player_one_test_objective.check_objective_collision()
         player_two_test_objective.display_objective(player_two.play_surface)
-        player_two_test_objective.check_objective_collision()
-        level_objective.check_level_complete(player_one, player_two)
 
         # ======================= INDIVIDUAL PLAYER DISPLAY ============================
         player_one.display_player(player_one.play_surface)
@@ -152,14 +156,17 @@ def main(game_scale=1):
         screen.blit(player_one_screen)
         screen.blit(player_two_screen, (0, screen.get_height() // 2))
 
+        # ========================= LEVEL OBJECTIVE LOGIC ==============================
+        player_one_test_objective.check_objective_collision()
+        player_two_test_objective.check_objective_collision()
+        level_objective.check_level_complete(player_one, player_two)
+
         # ============================= FPS CHECK ============================================
         clock.tick()
         fps_text = font.render(f"FPS: {clock.get_fps():.0f}", True, (255, 255, 255))
         fps_text_rect = fps_text.get_rect()
         screen.blit(fps_text, fps_text_rect)
         pygame.display.update()
-
-
 
 if __name__ == '__main__':
     initialize_pygame()
