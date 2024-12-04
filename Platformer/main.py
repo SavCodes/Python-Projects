@@ -57,8 +57,10 @@ def display_background(player):
     for index, image in enumerate(player.background_list[::-1], 1):
         if player.x_position <= PANNING_SCREEN_WIDTH // 2:
             x_start = 0
-        elif player.x_position >= SCREEN_WIDTH - PANNING_SCREEN_WIDTH:
+
+        elif player.x_position >= SCREEN_WIDTH - PANNING_SCREEN_WIDTH // 2:
             x_start = SCREEN_WIDTH - PANNING_SCREEN_WIDTH
+
         else:
             x_start = player.x_position - PANNING_SCREEN_WIDTH // 2
         display_rect = pygame.Rect(x_start * index * .2, player.y_position + 400 - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT // 2)
