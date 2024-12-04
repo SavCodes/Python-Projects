@@ -11,6 +11,7 @@ import test_file
 # TO DO LIST:
 #   -Create pause menu
 #   -Add collision detection for slanted blocks
+#   -Add panning window clamp for player screens
 
 GAME_SCALE = 2
 PANNING_SCREEN_WIDTH = 960
@@ -41,18 +42,16 @@ def event_checker(player_one, player_two):
     return True
 
 def load_backgrounds():
-    background_directory = "./game_assets/test_images/"
+    background_directory = "./game_assets/background_images/"
     background_images = []
-    for i in range(0,4):
+    for i in range(0,12):
         image = pygame.image.load(f'{background_directory}layer_{i}.png')
-        image = pygame.transform.scale(image, (SCREEN_WIDTH,SCREEN_HEIGHT // 2))
-        image.convert()
+        image = pygame.transform.scale(image, (SCREEN_WIDTH,SCREEN_HEIGHT // 2)).convert_alpha()
         background_images.append(image)
     return background_images
 
 def main(game_scale=1):
     running = True
-    initialize_pygame()
     screen = pygame.display.set_mode((PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT))
     screen.set_alpha(None)
     clock = pygame.time.Clock()
@@ -172,7 +171,7 @@ def main(game_scale=1):
         screen.blit(player_two_screen, (0, screen.get_height() // 2))
 
         # ============================= FPS CHECK ============================================
-        clock.tick(120)
+        clock.tick(60)
         fps_text = font.render(f"FPS: {clock.get_fps():.0f}", True, (255, 255, 255))
         fps_text_rect = fps_text.get_rect()
         screen.blit(fps_text, fps_text_rect)
@@ -180,4 +179,5 @@ def main(game_scale=1):
 
 
 if __name__ == '__main__':
+    initialize_pygame()
     main(GAME_SCALE)
