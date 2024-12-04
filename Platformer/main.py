@@ -46,7 +46,7 @@ def load_backgrounds():
     background_images = []
     for i in range(0,12):
         image = pygame.image.load(f'{background_directory}layer_{i}.png')
-        image = pygame.transform.scale(image, (SCREEN_WIDTH,SCREEN_HEIGHT // 2)).convert_alpha()
+        image = pygame.transform.scale(image, (SCREEN_WIDTH ,SCREEN_HEIGHT // 2)).convert_alpha()
         background_images.append(image)
     return background_images
 
@@ -77,13 +77,9 @@ def main(game_scale=1):
 
     #=============================== CONVERT IMAGES FOR ENGINE OPTIMIZATION ======================================
     player_one.play_surface.convert()
-    player_one.foreground.convert()
     player_two.play_surface.convert()
-    player_two.background.convert()
-    player_two.foreground.convert()
 
-
-    # ============================= LEVEL TILE SET GENERATION ===========================
+    # ============================ LEVEL TILE SET GENERATION ===========================
     player_one_level_set = level_files.player_one_level_set
     player_two_level_set = level_files.player_two_level_set
     player_one.tile_set = world_generator.WorldGenerator(player_one_level_set[player_one.current_level], scale=game_scale).world_tiles
@@ -105,12 +101,6 @@ def main(game_scale=1):
         player_two_test_objective.display_objective(player_two.play_surface)
         player_two_test_objective.check_objective_collision()
         level_objective.check_level_complete(player_one, player_two)
-
-        # ======================== TUTORIAL INSTRUCTIONS ===============================
-        # arrow_key_intructions.display_text(player_one.play_surface)
-        # wasd_intructions.display_text(player_two.play_surface)
-        # player_one_jump_instructions.display_text(player_one.play_surface)
-        # player_two_jump_instructions.display_text(player_two.play_surface)
 
         # ========================= CHECK FOR GAME INPUT ===============================
         running = event_checker(player_one, player_two)
@@ -149,7 +139,6 @@ def main(game_scale=1):
 
             player_one.play_surface.blit(image, (player_one.x_position - PANNING_SCREEN_WIDTH // 2, player_one.y_position-PANNING_SCREEN_HEIGHT//4), area=display_rect)
 
-
         # ======================= INDIVIDUAL PLAYER DISPLAY ============================
         player_one.display_player(player_one.play_surface)
         player_two.display_player(player_two.play_surface)
@@ -171,13 +160,20 @@ def main(game_scale=1):
         screen.blit(player_two_screen, (0, screen.get_height() // 2))
 
         # ============================= FPS CHECK ============================================
-        clock.tick(60)
+        clock.tick()
         fps_text = font.render(f"FPS: {clock.get_fps():.0f}", True, (255, 255, 255))
         fps_text_rect = fps_text.get_rect()
         screen.blit(fps_text, fps_text_rect)
         pygame.display.update()
 
 
+
 if __name__ == '__main__':
     initialize_pygame()
     main(GAME_SCALE)
+
+# ======================== TUTORIAL INSTRUCTIONS ===============================
+# arrow_key_intructions.display_text(player_one.play_surface)
+# wasd_intructions.display_text(player_two.play_surface)
+# player_one_jump_instructions.display_text(player_one.play_surface)
+# player_two_jump_instructions.display_text(player_two.play_surface)
