@@ -46,12 +46,23 @@ def load_backgrounds():
     return background_images
 
 def display_tile_set(player):
+    x_clamp_index = PANNING_SCREEN_WIDTH // (32 * GAME_SCALE)
+
     for layer in player.tile_set[max(player.y_ind-Y_WINDOW_PANNING_INDEX,0):player.y_ind+Y_WINDOW_PANNING_INDEX]:
-        for tile in layer[
-                    max(player.x_ind - X_WINDOW_PANNING_INDEX, 0):min(player.x_ind + X_WINDOW_PANNING_INDEX,
-                                                                          len(layer))]:
-            if tile.tile_number != "00":
-                tile.draw_platform(player.play_surface)
+        if player.x_position + PANNING_SCREEN_WIDTH // 2 >= SCREEN_WIDTH - PANNING_SCREEN_WIDTH // 2:
+            for tile in layer[x_clamp_index:]:
+                if tile.tile_number != "00":
+                    tile.draw_platform(player.play_surface)
+
+        elif player.x_position - PANNING_SCREEN_WIDTH // 2 <= 0 :
+            for tile in layer[:x_clamp_index]:
+                if tile.tile_number != "00":
+                    tile.draw_platform(player.play_surface)
+
+        else:
+            for tile in layer[max(player.x_ind - X_WINDOW_PANNING_INDEX, 0):min(player.x_ind + X_WINDOW_PANNING_INDEX,len(layer))]:
+                if tile.tile_number != "00":
+                    tile.draw_platform(player.play_surface)
 
 def display_background(player):
     for index, image in enumerate(player.background_list[::-1], 1):
@@ -62,7 +73,7 @@ def display_background(player):
             x_start = SCREEN_WIDTH - PANNING_SCREEN_WIDTH
 
         else:
-            x_start = player.x_position - PANNING_SCREEN_WIDTH // 2
+            x_start = player.x_position - PANNING_SCREEN_WIDTH // 2 +  player.x_velocity
         display_rect = pygame.Rect(x_start * index * .2, player.y_position + 400 - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT // 2)
         player.play_surface.blit(image, (x_start, player.y_position - PANNING_SCREEN_HEIGHT // 4), area=display_rect)
 
