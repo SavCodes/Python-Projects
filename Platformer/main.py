@@ -41,7 +41,7 @@ def event_checker(player_one, player_two):
     return True
 
 def load_backgrounds():
-    background_directory = "./game_assets/background_images/"
+    background_directory = "./game_assets/test_images/"
     background_images = []
     for i in range(0,4):
         image = pygame.image.load(f'{background_directory}layer_{i}.png')
@@ -142,8 +142,12 @@ def main(game_scale=1):
         player_two.play_surface.fill((0,0,0))
 
         # ============================= BACKGROUND DISPLAY
-        display_rect = pygame.Rect(player_one.x_position- PANNING_SCREEN_WIDTH/2, player_one.y_position + 400 - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT // 2)
-        for image in player_one.background_list[::-1]:
+        #display_rect = pygame.Rect(player_one.x_position- PANNING_SCREEN_WIDTH/2, player_one.y_position + 400 - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT // 2)
+        for index, image in enumerate(player_one.background_list[::-1], 1):
+            display_rect = pygame.Rect((player_one.x_position - PANNING_SCREEN_WIDTH / 2) * index * .2,
+                                       player_one.y_position + 400 - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH,
+                                       PANNING_SCREEN_HEIGHT // 2)
+
             player_one.play_surface.blit(image, (player_one.x_position - PANNING_SCREEN_WIDTH // 2, player_one.y_position-PANNING_SCREEN_HEIGHT//4), area=display_rect)
 
 
