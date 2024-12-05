@@ -11,6 +11,8 @@ import button
 # -Add mechanic to set level objective
 # -Add shift click add mechanic
 # -Add buttons to add/remove foreground
+# -Add display for currently selected block
+# -Add mechanic to rotate currently selected block
 
 def create_button(x_scale, y_scale, text, screen, tile_set_image_width, width=100, height=40):
     x_position = tile_set_image_width * x_scale
@@ -23,7 +25,6 @@ class LevelEditor:
         # ======================== needs to be sorted ============================
         pygame.init()
         pygame.display.set_caption('Level Editor')
-
         self.frame_rate = 300
         self.mask_toggle = 0
 
