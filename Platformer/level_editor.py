@@ -9,24 +9,29 @@ import button
 # TO DO LIST:
 # -Add mechanic to set player spawn
 # -Add mechanic to set level objective
+# -Add shift click add mechanic
+# -Add buttons to add/remove foreground
+
+def create_button(x_scale, y_scale, text, screen, tile_set_image_width, width=100, height=40):
+    x_position = tile_set_image_width * x_scale
+    y_position = pygame.display.get_window_size()[1] * y_scale
+    return button.Button(screen, x_position, y_position, width, height, text=text)
 
 
 class LevelEditor:
     def __init__(self, font_size=12):
         # ======================== needs to be sorted ============================
         pygame.init()
+        pygame.display.set_caption('Level Editor')
+
         self.frame_rate = 300
+        self.mask_toggle = 1
 
         # ======================== CAMERA PANNING ATTRIBUTES ===================
         self.camera_y_position = 0
         self.camera_x_position = 0
         self.TOTAL_LEVEL_WIDTH = 960 * 5
         self.TOTAL_LEVEL_HEIGHT = 576 * 3
-
-        # ======================== TEXT ATTRIBUTES =============================
-        pygame.display.set_caption('Level Editor')
-        self.font_size = font_size
-        self.font = pygame.font.SysFont('comicsans', self.font_size)
 
         # ======================== FILE PATH ==================================
         self.working_directory = './game_assets/tile_files/'                # CHANGE ME FOR DIFFERENT SETS
@@ -49,82 +54,29 @@ class LevelEditor:
         self.grid_screen = pygame.Surface((self.TOTAL_LEVEL_WIDTH, self.TOTAL_LEVEL_HEIGHT))
         self.level_x_length = (self.TOTAL_LEVEL_WIDTH - self.tile_set_image_width) // 32
         self.level_y_length = self.TOTAL_LEVEL_HEIGHT // 32
-        self.level_blank = [[0 for i in range(self.level_x_length)] for j in range(self.level_y_length)]
 
-        # ==================== SAVE BUTTON DATA ===============================
-        self.box_width = 100
-        self.box_height = 40
-        self.save_x_scale = 0.25
-        self.save_y_scale = 0.70
-        self.save_x_position = self.tile_set_image_width * self.save_x_scale
-        self.save_y_position = self.screen_height * self.save_y_scale
-        self.save_button = button.Button(self.screen, self.save_x_position, self.save_y_position,
-                                         self.box_width, self.box_height, text="SAVE LEVEL")
-
-        # ==================== RESET BUTTON DATA ===============================
-        self.reset_x_scale = 0.75
-        self.reset_y_scale = 0.70
-        self.reset_x_position = self.tile_set_image_width * self.reset_x_scale
-        self.reset_y_position = self.screen_height * self.reset_y_scale
-        self.reset_button = button.Button(self.screen, self.reset_x_position, self.reset_y_position,
-                                          self.box_width, self.box_height, text="RESET LEVEL")
-
-        # ==================== PLAYER ONE BUTTON DATA ==============================
+        # ==================== CREATE SETTING BUTTONS ===============================
         self.selected_player = "one"
-        self.player_one_x_scale = 0.25
-        self.player_one_y_scale = 0.60
-        self.player_one_x_position = self.tile_set_image_width * self.player_one_x_scale
-        self.player_one_y_position = self.screen_height * self.player_one_y_scale
-        self.player_one_button = button.Button(self.screen, self.player_one_x_position, self.player_one_y_position,
-                                               self.box_width, self.box_height, text="PLAYER ONE")
-
-        # ==================== PLAYER TWO BUTTON DATA ==============================
-        self.player_two_x_scale = 0.75
-        self.player_two_y_scale = 0.60
-        self.player_two_x_position = self.tile_set_image_width * self.player_two_x_scale
-        self.player_two_y_position = self.screen_height * self.player_two_y_scale
-        self.player_two_button = button.Button(self.screen, self.player_two_x_position, self.player_two_y_position,
-                                               self.box_width, self.box_height, text="PLAYER TWO")
-
-        # =================== NOTIFICATION BUTTON DATA ==============================
-        self.notification_x_position = self.tile_set_image_width * 0.50
-        self.notification_y_position = self.screen_height * 0.80
-        self.notification_button = button.Button(self.screen, self.notification_x_position, self.notification_y_position,
-                                                 self.box_width, self.box_height, text="NOTIFICATION")
-
-        # =================== CURRENT LEVEL BUTTON DATA =============================
-        self.level_title_x_scale = 0.50
-        self.level_title_y_scale = 0.90
         self.current_level = 0
-        self.level_title_x_position = self.tile_set_image_width * self.save_x_scale
-        self.level_title_y_position = self.screen_height * self.level_title_y_scale
-        self.level_title_button = button.Button(self.screen, self.level_title_x_position, self.level_title_y_position,
-                                         self.box_width, self.box_height, font_size=20,
-                                         text=f"Editing: Player {self.selected_player} Level {self.current_level}")
-
-        # ====================== SPAWN BUTTON DATA ====================================
-        self.spawn_button_x_scale = 0.25
-        self.spawn_button_y_scale = 0.50
-        self.spawn_button_x_position = self.tile_set_image_width * self.spawn_button_x_scale
-        self.spawn_button_y_position = self.screen_height * self.spawn_button_y_scale
-        self.spawn_button = button.Button(self.screen, self.spawn_button_x_position, self.spawn_button_y_position,
-                                          self.box_width, self.box_height, font_size=15, text=f"SET SPAWN")
-
-        # ==================== OBJECTIVE BUTTON DATA ===================================
-        self.objective_button_x_scale = 0.75
-        self.objective_button_y_scale = 0.50
-        self.objective_button_x_position = self.tile_set_image_width * self.objective_button_x_scale
-        self.objective_button_y_position = self.screen_height * self.objective_button_y_scale
-        self.objective_button = button.Button(self.screen, self.objective_button_x_position, self.objective_button_y_position,
-                                          self.box_width, self.box_height, font_size=15, text=f"SET OBJECTIVE")
+        self.save_button = create_button(0.25, 0.70, "SAVE LEVEL", self.screen, self.tile_set_image_width)
+        self.reset_button = create_button(0.75, 0.70, "RESET LEVEL", self.screen, self.tile_set_image_width)
+        self.player_one_button = create_button(0.25, 0.60, "PLAYER ONE", self.screen, self.tile_set_image_width)
+        self.player_two_button = create_button(0.75, 0.60, "PLAYER TWO", self.screen, self.tile_set_image_width)
+        self.notification_button = create_button(0.50, 0.80, "NOTIFICATIONS", self.screen, self.tile_set_image_width)
+        self.level_title_button = create_button(0.50, 0.90, f"Editing: Player {self.selected_player} Level {self.current_level}", self.screen, self.tile_set_image_width)
+        self.spawn_button = create_button(0.25, 0.50, "SET SPAWN", self.screen, self.tile_set_image_width)
+        self.objective_button = create_button(0.75, 0.50, "SET OBJECTIVE", self.screen, self.tile_set_image_width)
 
         # ==================== PLAYER SPAWN LOGIC ==================================
         self.player_spawn_set = False
         self.player_spawn_selected = False
 
         # ========================================= NEEDS SORTING =====================================================
-        #self.level_array = world_generator.WorldGenerator(level_files.player_one_level_set[self.current_level]).world_tiles
-        self.level_array = world_generator.WorldGenerator(test_file.player_one_level_set[self.current_level]).world_tiles
+        self.level_array = world_generator.WorldGenerator(test_file.player_one_level_set[self.mask_toggle][self.current_level]).world_tiles
+        self.level_blank = [["00" for i in range(self.level_x_length)] for j in range(self.level_y_length)]
+        self.blank_array = world_generator.WorldGenerator(self.level_blank).world_tiles
+
+        self.level_array += self.blank_array[(len(self.level_array) - 1):]
         self.original_level = copy.deepcopy(self.level_array)
 
     # ========================== EDITING LOGIC METHODS ======================================
@@ -179,7 +131,10 @@ class LevelEditor:
         if self.player_one_button.is_pressed:
             self.selected_player = "one"
             self.notification_button.set_text("Player One Selected")
+            self.level_title_button.display_button()
             self.notification_button.display_button((0,0,0))
+            self.level_title_button.set_text(f"Editing: Player {self.selected_player} Level {self.current_level}")
+
 
         # Player two click detection
         self.player_two_button.check_pressed(self.mouse_x, self.mouse_y)
@@ -187,6 +142,8 @@ class LevelEditor:
             self.selected_player = "two"
             self.notification_button.set_text("Player Two Selected")
             self.notification_button.display_button((0,0,0))
+            self.level_title_button.set_text(f"Editing: Player {self.selected_player} Level {self.current_level}")
+
 
     def check_save_button(self):
         # Check if mouse is hovering button
@@ -231,21 +188,19 @@ def event_checker(level_editor):
     for event in events:
         if event.type == pygame.QUIT:
             return False
-        elif event.type == pygame.KEYDOWN and event.key == pygame.K_UP and level_editor.current_level < len(test_file.player_one_level_set) - 1:
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_UP and level_editor.current_level < len(test_file.player_one_level_set[level_editor.mask_toggle]) - 1:
             level_editor.current_level += 1
-            level_editor.level_array = world_generator.WorldGenerator(test_file.player_one_level_set[level_editor.current_level]).world_tiles
-            level_editor.level_title_button.set_text(f"Editing: Player {level_editor.selected_player} Level {level_editor.current_level}")
+            level_editor.level_array = world_generator.WorldGenerator(test_file.player_one_level_set[level_editor.mask_toggle][level_editor.current_level]).world_tiles
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN and level_editor.current_level > 0:
             level_editor.current_level -= 1
-            level_editor.level_title_button.set_text(f"Editing: Player {level_editor.selected_player} Level {level_editor.current_level}")
-            level_editor.level_array = world_generator.WorldGenerator(test_file.player_one_level_set[level_editor.current_level]).world_tiles
+            level_editor.level_array = world_generator.WorldGenerator(test_file.player_one_level_set[level_editor.mask_toggle][level_editor.current_level]).world_tiles
 
     return True
 
 def main():
     level_editor = LevelEditor()
     clock = pygame.Clock()
-    frame_rate = 10
+    frame_rate = 300
     running = True
     while running:
         # ================================== LOGIC RELATED CODE ====================================
