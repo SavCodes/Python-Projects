@@ -59,14 +59,22 @@ class LevelEditor:
         # ==================== CREATE SETTING BUTTONS ===============================
         self.selected_player = "one"
         self.current_level = 0
-        self.save_button = create_button(0.25, 0.70, "SAVE LEVEL", self.screen, self.tile_set_image_width)
-        self.reset_button = create_button(0.75, 0.70, "RESET LEVEL", self.screen, self.tile_set_image_width)
-        self.player_one_button = create_button(0.25, 0.60, "PLAYER ONE", self.screen, self.tile_set_image_width)
-        self.player_two_button = create_button(0.75, 0.60, "PLAYER TWO", self.screen, self.tile_set_image_width)
-        self.notification_button = create_button(0.50, 0.80, "NOTIFICATIONS", self.screen, self.tile_set_image_width)
-        self.level_title_button = create_button(0.50, 0.90, f"Editing: Player {self.selected_player} Level {self.current_level}", self.screen, self.tile_set_image_width)
+
+        # Left sided buttons
         self.spawn_button = create_button(0.25, 0.50, "SET SPAWN", self.screen, self.tile_set_image_width)
+        self.player_one_button = create_button(0.25, 0.60, "PLAYER ONE", self.screen, self.tile_set_image_width)
+        self.save_button = create_button(0.25, 0.70, "SAVE LEVEL", self.screen, self.tile_set_image_width)
+        self.background_button = create_button(0.25, 0.80, "BACKGROUND", self.screen, self.tile_set_image_width)
+
+        # Right sided buttons
         self.objective_button = create_button(0.75, 0.50, "SET OBJECTIVE", self.screen, self.tile_set_image_width)
+        self.player_two_button = create_button(0.75, 0.60, "PLAYER TWO", self.screen, self.tile_set_image_width)
+        self.reset_button = create_button(0.75, 0.70, "RESET LEVEL", self.screen, self.tile_set_image_width)
+        self.foreground_button = create_button(0.75, 0.80, "FOREGROUND", self.screen, self.tile_set_image_width)
+
+        # Centered buttons
+        self.notification_button = create_button(0.50, 0.90, "NOTIFICATIONS", self.screen, self.tile_set_image_width)
+        self.level_title_button = create_button(0.45, 0.95, f"Editing: Player {self.selected_player} Level {self.current_level}", self.screen, self.tile_set_image_width)
 
         # ==================== PLAYER SPAWN LOGIC ==================================
         self.player_spawn_set = False
@@ -167,6 +175,16 @@ class LevelEditor:
         if self.spawn_button.is_pressed:
             self.player_spawn_selected = True
 
+    def check_foreground_button(self):
+        self.foreground_button.check_pressed(self.mouse_x, self.mouse_y)
+        if self.foreground_button.is_pressed:
+            print("Pressed Foreground Button")
+
+    def check_background_button(self):
+        self.background_button.check_pressed(self.mouse_x, self.mouse_y)
+        if self.background_button.is_pressed:
+            print("Pressed Background Button")
+
     def pan_camera(self):
         PANNING_SCREEN_WIDTH = 960
         PANNING_SCREEN_HEIGHT = 576
@@ -228,6 +246,8 @@ def main():
         level_editor.reset_button.display_button()
         level_editor.spawn_button.display_button()
         level_editor.objective_button.display_button()
+        level_editor.foreground_button.display_button()
+        level_editor.background_button.display_button()
         level_editor.level_title_button.display_button((0,0,0))
 
         # ================================ BUTTON LOGIC CODE =====================================
@@ -235,6 +255,8 @@ def main():
         level_editor.check_player_buttons()
         level_editor.check_reset_button()
         level_editor.check_spawn_button()
+        level_editor.check_foreground_button()
+        level_editor.check_background_button()
 
         # ============================ FPS RELATED LOGIC =============================
         clock.tick(frame_rate)
