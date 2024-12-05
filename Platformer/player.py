@@ -187,32 +187,27 @@ class Player:
             self.y_velocity = -10
 
     def resolve_collision(self, wall_rects, screen):
-        ## DEBUGGING ####
-        # pygame.draw.rect(screen, (255, 0, 0), x_collision_hitbox, 2) # X-Axis hit-box display
-        # pygame.draw.rect(screen, (0, 255, 0), y_collision_hitbox, 2) # Y-Axis hit-box display
-
-
         # Find the characters projected position for the next frame
         projected_y = self.y_position + self.y_velocity
 
         # Create hit-boxes for vertical and horizontal collisions
-        y_collision_hitbox = pygame.Rect(self.x_position + self.player_width // 2, projected_y, 1, self.player_height)
+        self.y_collision_hitbox = pygame.Rect(self.x_position + self.player_width // 2 - 5, projected_y, 1 + 10, self.player_height)
 
         # Find player location in terms of tile indexing
-        x_ind = int((self.x_position + self.player_width // 4) // (32 * self.scale))
+        x_ind = int((self.x_position + self.player_width_buffer) // self.player_width)
         y_ind = int(self.y_position // (32 * self.scale))
 
         # Find neighboring walls that are collidable
         neighboring_walls = [wall_rects[y_ind+y][x_ind+x] for x in range(-1, 2) for y in range(-1, 2) if wall_rects[y_ind+y][x_ind+x].is_collidable]
 
-        if y_ind + 1 < len(wall_rects) -1 and not wall_rects[y_ind+1][x_ind].is_collidable:
+        if y_ind + 1 < len(wall_rects) - 1 and not wall_rects[y_ind+1][x_ind].is_collidable:
             self.is_touching_ground = False
 
         for wall in neighboring_walls:
             pygame.draw.rect(screen, "white", wall.platform_rect, 2)
 
             # Y-Axis collision handling
-            if wall.is_collidable and wall.platform_rect.colliderect(y_collision_hitbox):
+            if wall.is_collidable and wall.platform_rect.colliderect(self.y_collision_hitbox):
                 # Landing collision handling
                 if self.y_velocity > 0:
                     # Reset Jump related attributes
@@ -228,10 +223,20 @@ class Player:
                     self.y_position = wall.platform_rect.bottom
 
             projected_x = self.x_position + self.x_velocity
-            x_collision_hitbox = pygame.Rect(projected_x + self.player_width_buffer, self.y_position, self.player_width - 2 * self.player_width_buffer, self.player_height)
+            #self.x_collision_hitbox = pygame.Rect(projected_x + self.player_width_buffer, self.y_position + self.player_height//2, self.player_width - 2 * self.player_width_buffer, 1)
+
+            if self.direction == 1:
+                self.x_collision_hitbox = pygame.Rect(projected_x + 2 * self.player_width_buffer,
+                                                      self.y_position,
+                                                      self.player_width_buffer, self.player_height)
+            else:
+                self.x_collision_hitbox = pygame.Rect(projected_x + self.player_width_buffer,
+                                                      self.y_position,
+                                                      self.player_width_buffer, self.player_height)
+
 
             # X-Axis collision handling
-            if wall.is_collidable and wall.platform_rect.colliderect(x_collision_hitbox):
+            if wall.is_collidable and wall.platform_rect.colliderect(self.x_collision_hitbox):
                 # Right sided collision handling
                 if self.x_velocity > 0:
                     self.x_position = wall.platform_rect.left - self.player_width + self.player_width_buffer
