@@ -29,6 +29,7 @@ class LevelEditor:
         self.showing_foreground = False
         self.showing_background = False
 
+
         # ======================== CAMERA PANNING ATTRIBUTES ===================
         self.camera_y_position = 0
         self.camera_x_position = 0
@@ -87,6 +88,8 @@ class LevelEditor:
         self.background_array = world_generator.WorldGenerator(test_file.player_one_level_set[2][self.current_level]).world_tiles
 
         self.level_array = self.player_tile_array
+        self.active_edit_layer = self.level_array
+
         self.level_blank = [["00" for i in range(self.level_x_length)] for j in range(self.level_y_length)]
         self.blank_array = world_generator.WorldGenerator(self.level_blank).world_tiles
 
@@ -134,8 +137,10 @@ class LevelEditor:
                                  (i * self.tile_width, j * self.tile_height, self.tile_width, self.tile_height))
 
     def display_tile(self, array_to_display):
+        start_index = self.camera_x_position // self.tile_width
+        end_index = (self.screen_width - self.tile_set_image_width) // self.tile_width + start_index
         for layer in array_to_display:
-            for tile in layer:
+            for tile in layer[start_index:end_index]:
                 tile.draw_platform(self.grid_screen)
 
     # ============================ BUTTON METHODS ===========================================
@@ -194,8 +199,6 @@ class LevelEditor:
         PANNING_SCREEN_WIDTH = 960
         PANNING_SCREEN_HEIGHT = 576
         panning_display_rect = pygame.Rect(self.camera_x_position,0, PANNING_SCREEN_WIDTH,PANNING_SCREEN_HEIGHT)
-
-
         self.screen.blit(self.grid_screen, (self.tile_set_image_width,0), area=panning_display_rect)
 
 def event_checker(level_editor):
