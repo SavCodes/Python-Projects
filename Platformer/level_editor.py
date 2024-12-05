@@ -21,12 +21,13 @@ def create_button(x_scale, y_scale, text, screen, tile_set_image_width, width=10
 
 
 class LevelEditor:
-    def __init__(self, font_size=12):
+    def __init__(self):
         # ======================== needs to be sorted ============================
         pygame.init()
         pygame.display.set_caption('Level Editor')
         self.frame_rate = 300
-        self.mask_toggle = 0
+        self.showing_foreground = False
+        self.showing_background = False
 
         # ======================== CAMERA PANNING ATTRIBUTES ===================
         self.camera_y_position = 0
@@ -81,7 +82,12 @@ class LevelEditor:
         self.player_spawn_selected = False
 
         # ========================================= NEEDS SORTING =====================================================
-        self.level_array = world_generator.WorldGenerator(test_file.player_one_level_set[self.mask_toggle][self.current_level]).world_tiles
+        self.player_tile_array = world_generator.WorldGenerator(test_file.player_one_level_set[0][self.current_level]).world_tiles
+        self.foreground_array = world_generator.WorldGenerator(test_file.player_one_level_set[1][self.current_level]).world_tiles
+        self.background_array = world_generator.WorldGenerator(test_file.player_one_level_set[2][self.current_level]).world_tiles
+
+
+        self.level_array = self.player_tile_array
         self.level_blank = [["00" for i in range(self.level_x_length)] for j in range(self.level_y_length)]
         self.blank_array = world_generator.WorldGenerator(self.level_blank).world_tiles
 
@@ -128,8 +134,8 @@ class LevelEditor:
                 pygame.draw.rect(self.grid_screen, color,
                                  (i * self.tile_width, j * self.tile_height, self.tile_width, self.tile_height))
 
-    def display_tile(self):
-        for layer in self.level_array:
+    def display_tile(self, array_to_display):
+        for layer in array_to_display:
             for tile in layer:
                 tile.draw_platform(self.grid_screen)
 
@@ -178,12 +184,12 @@ class LevelEditor:
     def check_foreground_button(self):
         self.foreground_button.check_pressed(self.mouse_x, self.mouse_y)
         if self.foreground_button.is_pressed:
-            print("Pressed Foreground Button")
+            self.showing_foreground =  not self.showing_foreground
 
     def check_background_button(self):
         self.background_button.check_pressed(self.mouse_x, self.mouse_y)
         if self.background_button.is_pressed:
-            print("Pressed Background Button")
+            self.showing_background = not self.showing_background
 
     def pan_camera(self):
         PANNING_SCREEN_WIDTH = 960
@@ -212,11 +218,7 @@ def event_checker(level_editor):
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN and level_editor.current_level > 0:
             level_editor.current_level -= 1
             level_editor.level_array = world_generator.WorldGenerator(test_file.player_one_level_set[level_editor.mask_toggle][level_editor.current_level]).world_tiles
-        elif event.type == pygame.KEYDOWN and event.key == pygame.K_m:
-            level_editor.mask_toggle += 1 if level_editor.mask_toggle == 0 else -1
-            print(level_editor.mask_toggle)
-            level_editor.level_array = world_generator.WorldGenerator(
-                test_file.player_one_level_set[level_editor.mask_toggle][level_editor.current_level]).world_tiles
+
     return True
 
 def main():
@@ -234,8 +236,12 @@ def main():
         level_editor.grid_screen.fill((0,0,0))
         level_editor.screen.fill((0, 0, 0))
         level_editor.display_gridlines()
-        level_editor.display_tile()
+        level_editor.display_tile(level_editor.player_tile_array)
         level_editor.screen.blit(level_editor.grid_screen, (level_editor.tile_set_image_width, 0))
+        if level_editor.showing_background:
+            level_editor.display_tile(level_editor.background_array)
+        if level_editor.showing_foreground:
+            level_editor.display_tile(level_editor.foreground_array)
         level_editor.pan_camera()
         level_editor.screen.blit(level_editor.tile_set_image)
 
