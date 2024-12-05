@@ -25,7 +25,7 @@ class LevelEditor:
         pygame.display.set_caption('Level Editor')
 
         self.frame_rate = 300
-        self.mask_toggle = 1
+        self.mask_toggle = 0
 
         # ======================== CAMERA PANNING ATTRIBUTES ===================
         self.camera_y_position = 0
@@ -144,7 +144,6 @@ class LevelEditor:
             self.notification_button.display_button((0,0,0))
             self.level_title_button.set_text(f"Editing: Player {self.selected_player} Level {self.current_level}")
 
-
     def check_save_button(self):
         # Check if mouse is hovering button
         self.save_button.check_pressed(self.mouse_x, self.mouse_y)
@@ -194,7 +193,11 @@ def event_checker(level_editor):
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN and level_editor.current_level > 0:
             level_editor.current_level -= 1
             level_editor.level_array = world_generator.WorldGenerator(test_file.player_one_level_set[level_editor.mask_toggle][level_editor.current_level]).world_tiles
-
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_m:
+            level_editor.mask_toggle += 1 if level_editor.mask_toggle == 0 else -1
+            print(level_editor.mask_toggle)
+            level_editor.level_array = world_generator.WorldGenerator(
+                test_file.player_one_level_set[level_editor.mask_toggle][level_editor.current_level]).world_tiles
     return True
 
 def main():
