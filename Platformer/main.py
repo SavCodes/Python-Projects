@@ -42,11 +42,13 @@ def load_backgrounds():
         background_images.append(image)
     return background_images
 
-def display_tile_set(player, tile_foreground=False):
+def display_tile_set(player, tile_foreground=False, tile_background=False):
     x_clamp_index = PANNING_SCREEN_WIDTH // (32 * GAME_SCALE)
     y_clamp_index = PANNING_SCREEN_HEIGHT // (32 * GAME_SCALE)
-    if not tile_foreground:
+    if not tile_foreground and not tile_background:
         tile_set = player.tile_set
+    elif tile_background:
+        tile_set = player.tile_background
     else:
         tile_set = player.tile_foreground
 
@@ -118,14 +120,20 @@ def main(game_scale=GAME_SCALE):
     player_one.play_surface.convert()
     player_two.play_surface.convert()
 
-    # ============================ LEVEL TILE SET GENERATION ===========================
-    player_two_level_set = [level_files.player_two_tile_set, level_files.player_two_mask_set]
+    # ============================ TILE SET GENERATION ===========================
+    player_two_level_set = [level_files.player_two_tile_set, level_files.player_two_foreground_set, level_files.player_two_background_set]
     player_two.tile_set = world_generator.WorldGenerator(player_two_level_set[0][player_one.current_level], scale=game_scale).world_tiles
+
+    player_one_level_set = [level_files.player_one_tile_set, level_files.player_one_foreground_set, level_files.player_one_background_set]
+    player_one.tile_set = world_generator.WorldGenerator(player_one_level_set[0][player_one.current_level], scale=game_scale).world_tiles
+
+    # =========================== FOREGROUND GENERATION =================================
+    player_one.tile_foreground = world_generator.WorldGenerator(player_one_level_set[1][player_one.current_level], scale=game_scale).world_tiles
     player_two.tile_foreground = world_generator.WorldGenerator(player_two_level_set[1][player_one.current_level], scale=game_scale).world_tiles
 
-    player_one_level_set = [level_files.player_one_tile_set, level_files.player_one_mask_set]
-    player_one.tile_set = world_generator.WorldGenerator(player_one_level_set[0][player_one.current_level], scale=game_scale).world_tiles
-    player_one.tile_foreground = world_generator.WorldGenerator(player_one_level_set[1][player_one.current_level], scale=game_scale).world_tiles
+    # ========================== BACKGROUND GENERATION ==================================
+    player_one.tile_background = world_generator.WorldGenerator(player_one_level_set[2][player_one.current_level], scale=game_scale).world_tiles
+    player_two.tile_background = world_generator.WorldGenerator(player_two_level_set[2][player_one.current_level], scale=game_scale).world_tiles
 
     # ============================= CREATE LEVEL OBJECTIVES =============================
     player_one_test_objective = level_objective.LevelObjective(player_one, SCREEN_WIDTH - 200, 100)
@@ -161,6 +169,10 @@ def main(game_scale=GAME_SCALE):
         display_background(player_one)
         display_background(player_two)
 
+        # ======================= DISPLAY BACKGROUND TILE SET ====================
+        display_tile_set(player_one, tile_background=True)
+        display_tile_set(player_two, tile_background=True)
+
         # ======================= INDIVIDUAL PLAYER DISPLAY ============================
         player_one.display_player(player_one.play_surface)
         player_two.display_player(player_two.play_surface)
@@ -172,6 +184,8 @@ def main(game_scale=GAME_SCALE):
         # ========================= DISPLAY FOREGROUND TILE SET =========================
         display_tile_set(player_one, tile_foreground=True)
         display_tile_set(player_two, tile_foreground=True)
+
+
 
         # ====================== DISPLAY LEVEL OBJECTIVES ===============================
         player_one_test_objective.display_objective(player_one.play_surface)
