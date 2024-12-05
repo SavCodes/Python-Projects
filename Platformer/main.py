@@ -5,15 +5,12 @@ import player
 import physics
 import world_generator
 import level_files
-import game_text
 import test_file
 
 # TO DO LIST:
 #   -Create pause menu
 #   -Add collision detection for slanted blocks
-#   -Add panning window clamp for player screens
 #   -Add wall slide/jump mechanic for player
-#   -Fix bug when ground disappears approaching screen border
 
 GAME_SCALE = 2
 PANNING_SCREEN_WIDTH = 960
@@ -45,10 +42,15 @@ def load_backgrounds():
         background_images.append(image)
     return background_images
 
-def display_tile_set(player):
+def display_tile_set(player, tile_foreground=False):
     x_clamp_index = PANNING_SCREEN_WIDTH // (32 * GAME_SCALE)
+    y_clamp_index = PANNING_SCREEN_HEIGHT // (32 * GAME_SCALE)
+    if not tile_foreground:
+        tile_set = player.tile_set
+    else:
+        tile_set = player.tile_foreground
 
-    for layer in player.tile_set[max(player.y_ind-Y_WINDOW_PANNING_INDEX,0):player.y_ind+Y_WINDOW_PANNING_INDEX]:
+    for layer in tile_set[max(player.y_ind-Y_WINDOW_PANNING_INDEX,0):player.y_ind+Y_WINDOW_PANNING_INDEX]:
         if player.x_position + PANNING_SCREEN_WIDTH // 2 >= SCREEN_WIDTH - PANNING_SCREEN_WIDTH // 2:
             for tile in layer[x_clamp_index:]:
                 if tile.tile_number != "00":
@@ -89,7 +91,7 @@ def pan_window(player, player_screen):
     display_rect = pygame.Rect(x_start, player.y_position - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT // 2)
     player_screen.blit(player.play_surface, area=display_rect)
 
-def main(game_scale=1):
+def main(game_scale=GAME_SCALE):
     running = True
     screen = pygame.display.set_mode((PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT))
     screen.set_alpha(None)
@@ -105,7 +107,7 @@ def main(game_scale=1):
     player_two = player.Player(scale=game_scale)
     player_two_screen = pygame.Surface((screen.get_width(), screen.get_height()//2))
     player_two.play_surface = pygame.Surface((SCREEN_WIDTH , SCREEN_HEIGHT))
-    player_two.x_position = PANNING_SCREEN_WIDTH * 5 - 500
+    player_two.x_position = SCREEN_WIDTH - (32 * GAME_SCALE * 5)
     player_two.play_surface.convert()
 
     #======================================== PLAYER ONE BACKGROUNDS ================================================
@@ -117,10 +119,13 @@ def main(game_scale=1):
     player_two.play_surface.convert()
 
     # ============================ LEVEL TILE SET GENERATION ===========================
-    player_one_level_set = level_files.player_one_level_set
-    player_two_level_set = level_files.player_two_level_set
-    player_one.tile_set = world_generator.WorldGenerator(player_one_level_set[player_one.current_level], scale=game_scale).world_tiles
-    player_two.tile_set = world_generator.WorldGenerator(player_two_level_set[player_one.current_level], scale=game_scale).world_tiles
+    player_two_level_set = [level_files.player_two_tile_set, level_files.player_two_mask_set]
+    player_two.tile_set = world_generator.WorldGenerator(player_two_level_set[0][player_one.current_level], scale=game_scale).world_tiles
+    player_two.tile_foreground = world_generator.WorldGenerator(player_two_level_set[1][player_one.current_level], scale=game_scale).world_tiles
+
+    player_one_level_set = [level_files.player_one_tile_set, level_files.player_one_mask_set]
+    player_one.tile_set = world_generator.WorldGenerator(player_one_level_set[0][player_one.current_level], scale=game_scale).world_tiles
+    player_one.tile_foreground = world_generator.WorldGenerator(player_one_level_set[1][player_one.current_level], scale=game_scale).world_tiles
 
     # ============================= CREATE LEVEL OBJECTIVES =============================
     player_one_test_objective = level_objective.LevelObjective(player_one, SCREEN_WIDTH - 200, 100)
@@ -156,17 +161,21 @@ def main(game_scale=1):
         display_background(player_one)
         display_background(player_two)
 
-        # ========================= DISPLAY TILE SET ====================================
+        # ======================= INDIVIDUAL PLAYER DISPLAY ============================
+        player_one.display_player(player_one.play_surface)
+        player_two.display_player(player_two.play_surface)
+
+        # ========================= DISPLAY PLAYER LEVEL TILE SET =======================
         display_tile_set(player_one)
         display_tile_set(player_two)
+
+        # ========================= DISPLAY FOREGROUND TILE SET =========================
+        display_tile_set(player_one, tile_foreground=True)
+        display_tile_set(player_two, tile_foreground=True)
 
         # ====================== DISPLAY LEVEL OBJECTIVES ===============================
         player_one_test_objective.display_objective(player_one.play_surface)
         player_two_test_objective.display_objective(player_two.play_surface)
-
-        # ======================= INDIVIDUAL PLAYER DISPLAY ============================
-        player_one.display_player(player_one.play_surface)
-        player_two.display_player(player_two.play_surface)
 
         # ======================== COMBINED PLAYER DISPLAY =============================
         screen.blit(player_one_screen)
@@ -178,7 +187,7 @@ def main(game_scale=1):
         level_objective.check_level_complete(player_one, player_two)
 
         # ============================= FPS CHECK ============================================
-        clock.tick()
+        clock.tick(90)
         fps_text = font.render(f"FPS: {clock.get_fps():.0f}", True, (255, 255, 255))
         fps_text_rect = fps_text.get_rect()
         screen.blit(fps_text, fps_text_rect)
@@ -200,3 +209,9 @@ if __name__ == '__main__':
 # player_one_jump_instructions = game_text.BouncingText(PANNING_SCREEN_WIDTH//2 + 800, PANNING_SCREEN_HEIGHT + (GAME_SCALE * 32 * 7/4), " Use the Up arrow key to jump ")
 # player_two_jump_instructions = game_text.BouncingText(PANNING_SCREEN_WIDTH * 5 - 1200, PANNING_SCREEN_HEIGHT + (GAME_SCALE * 32 * 7/4), " Use the Up arrow key to jump ")
 
+# ======================= HIT BOX DEBUGGING =====================================
+# pygame.draw.rect(player_one.play_surface, "red", player_one.y_collision_hitbox, 1)
+# try:
+#     pygame.draw.rect(player_one.play_surface, "red", player_one.x_collision_hitbox, 1 )
+# except:
+#     pass
