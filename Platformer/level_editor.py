@@ -86,7 +86,6 @@ class LevelEditor:
         self.foreground_array = world_generator.WorldGenerator(test_file.player_one_level_set[1][self.current_level]).world_tiles
         self.background_array = world_generator.WorldGenerator(test_file.player_one_level_set[2][self.current_level]).world_tiles
 
-
         self.level_array = self.player_tile_array
         self.level_blank = [["00" for i in range(self.level_x_length)] for j in range(self.level_y_length)]
         self.blank_array = world_generator.WorldGenerator(self.level_blank).world_tiles
@@ -218,6 +217,10 @@ def event_checker(level_editor):
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN and level_editor.current_level > 0:
             level_editor.current_level -= 1
             level_editor.level_array = world_generator.WorldGenerator(test_file.player_one_level_set[level_editor.mask_toggle][level_editor.current_level]).world_tiles
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_f:
+            level_editor.showing_foreground = not level_editor.showing_foreground
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_b:
+            level_editor.showing_background = not level_editor.showing_background
 
     return True
 
@@ -265,8 +268,13 @@ def main():
         level_editor.check_background_button()
 
         # ============================ FPS RELATED LOGIC =============================
+        fps_text = level_editor.save_button.font.render(f"FPS: {clock.get_fps():.0f}", True, (255, 255, 255))
+        fps_text_rect = fps_text.get_rect()
+        level_editor.screen.blit(fps_text, fps_text_rect)
         clock.tick(frame_rate)
         pygame.display.update()
+        clock.tick(90)
+
 
     pygame.quit()
 
