@@ -10,16 +10,64 @@ import button
 # -Add mechanic to set player spawn
 # -Add mechanic to set level objective
 # -Add shift click add mechanic
-# -Add buttons to add/remove foreground
 # -Add display for currently selected block
 # -Add mechanic to rotate currently selected block
-# -Add a way to toggle through multiple tilesets
+
+def event_checker(level_editor):
+    # =================== HOLDING KEY LOGIC ========================
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_RIGHT] and level_editor.camera_x_position < level_editor.TOTAL_LEVEL_WIDTH:
+        level_editor.camera_x_position += 16
+    elif keys[pygame.K_LEFT] and level_editor.camera_x_position > 0:
+        level_editor.camera_x_position -= 16
+
+    # =================== PRESSING KEY LOGIC =======================
+    events = pygame.event.get()
+    for event in events:
+        if event.type == pygame.QUIT:
+            return False
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_UP and level_editor.current_level < len(
+                test_file.player_one_level_set[level_editor.mask_toggle]) - 1:
+            level_editor.current_level += 1
+            level_editor.level_array = world_generator.WorldGenerator(
+                test_file.player_one_level_set[level_editor.mask_toggle][level_editor.current_level]).world_tiles
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN and level_editor.current_level > 0:
+            level_editor.current_level -= 1
+            level_editor.level_array = world_generator.WorldGenerator(
+                test_file.player_one_level_set[level_editor.mask_toggle][level_editor.current_level]).world_tiles
+
+        # Foreground toggling when clicking `F`
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_f:
+            level_editor.showing_foreground = not level_editor.showing_foreground
+
+        # Background toggling when clicking `B`
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_b:
+            level_editor.showing_background = not level_editor.showing_background
+
+        # Toggle tile sets with number keys
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_0:
+            toggle_tilesets(level_editor, 0)
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_1:
+            toggle_tilesets(level_editor, 1)
+
+    return True
 
 def create_button(x_scale, y_scale, text, screen, tile_set_image_width, width=100, height=40):
     x_position = tile_set_image_width * x_scale
     y_position = pygame.display.get_window_size()[1] * y_scale
     return button.Button(screen, x_position, y_position, width, height, text=text)
 
+def toggle_tilesets(editor, tile_set_number):
+    editor.current_tileset = tile_set_number
+    editor.working_directory = editor.tile_set_directories[editor.current_tileset]
+    editor.full_file_path =  editor.working_directory + editor.tile_set_name
+    editor.tile_set_image = pygame.image.load(editor.full_file_path)
+    if tile_set_number == 0:
+        editor.starting_cols, editor.starting_rows = 12, 8
+    elif tile_set_number == 1:
+        editor.starting_cols, editor.starting_rows = 7, 7
+    editor.tile_set_image = pygame.transform.scale(editor.tile_set_image, (32 * editor.starting_cols, 32 * editor.starting_rows))
+    editor.tile_set_image_width, editor.tile_set_image_height = editor.tile_set_image.get_width(), editor.tile_set_image.get_height()
 
 class LevelEditor:
     def __init__(self):
@@ -37,11 +85,15 @@ class LevelEditor:
         self.TOTAL_LEVEL_HEIGHT = 576 * 3
 
         # ======================== FILE PATH ==================================
-        self.working_directory = './game_assets/mossy_test/'                # CHANGE ME FOR DIFFERENT SETS
-        self.tile_set_name = 'Tileset.png'                                  # CHANGE ME FOR DIFFERENT SETS
-        self.full_file_path = self.working_directory + self.tile_set_name
+        self.current_tileset = 1
+        self.starting_rows = 7
+        self.starting_cols = 7
+        self.tile_set_directories = ["./game_assets/tile_files/", "./game_assets/mossy_test/"]
+        self.working_directory = self.tile_set_directories[self.current_tileset]              # CHANGE ME FOR DIFFERENT SETS
+        self.tile_set_name = 'Tileset.png'                                                    # CHANGE ME FOR DIFFERENT SETS
+        self.full_file_path = self.tile_set_directories[self.current_tileset] + self.tile_set_name
         self.tile_set_image = pygame.image.load(self.full_file_path)
-        self.tile_set_image = pygame.transform.scale(self.tile_set_image,(32*7, 32*7))
+        self.tile_set_image = pygame.transform.scale(self.tile_set_image,(32*self.starting_cols, 32*self.starting_rows))
 
         # ======================= SCREEN DATA =================================
         self.screen_width = 1248
@@ -91,7 +143,7 @@ class LevelEditor:
         self.active_edit_layer = (self.editing_array[0], "Player Level Tiles")
         self.level_title_button.set_text(f"Editing: Player {self.selected_player} Level {self.current_level} \n Layer: {self.editing_array[1]}")
 
-        self.level_blank = [["00" for i in range(self.level_x_length)] for j in range(self.level_y_length)]
+        self.level_blank = [[f"{self.working_directory}Tile_00.png" for i in range(self.level_x_length)] for j in range(self.level_y_length)]
         self.blank_array = world_generator.WorldGenerator(self.level_blank).world_tiles
 
         self.editing_array[0] += self.blank_array[(len(self.editing_array[0]) - 1):]
@@ -217,31 +269,6 @@ class LevelEditor:
         panning_display_rect = pygame.Rect(self.camera_x_position,0, PANNING_SCREEN_WIDTH,PANNING_SCREEN_HEIGHT)
         self.screen.blit(self.grid_screen, (self.tile_set_image_width,0), area=panning_display_rect)
 
-def event_checker(level_editor):
-    # =================== HOLDING KEY LOGIC ========================
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_RIGHT] and level_editor.camera_x_position < level_editor.TOTAL_LEVEL_WIDTH:
-        level_editor.camera_x_position += 16
-    elif keys[pygame.K_LEFT] and level_editor.camera_x_position > 0:
-        level_editor.camera_x_position -= 16
-
-    # =================== PRESSING KEY LOGIC =======================
-    events = pygame.event.get()
-    for event in events:
-        if event.type == pygame.QUIT:
-            return False
-        elif event.type == pygame.KEYDOWN and event.key == pygame.K_UP and level_editor.current_level < len(test_file.player_one_level_set[level_editor.mask_toggle]) - 1:
-            level_editor.current_level += 1
-            level_editor.level_array = world_generator.WorldGenerator(test_file.player_one_level_set[level_editor.mask_toggle][level_editor.current_level]).world_tiles
-        elif event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN and level_editor.current_level > 0:
-            level_editor.current_level -= 1
-            level_editor.level_array = world_generator.WorldGenerator(test_file.player_one_level_set[level_editor.mask_toggle][level_editor.current_level]).world_tiles
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_f:
-            level_editor.showing_foreground = not level_editor.showing_foreground
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_b:
-            level_editor.showing_background = not level_editor.showing_background
-
-    return True
 
 def main():
     level_editor = LevelEditor()
