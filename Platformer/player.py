@@ -166,8 +166,10 @@ class Player:
             self.death_index += self.animation_speed
 
         elif self.current_health <= 0 and self.death_index > self.death_sprites.number_of_animations -1:
-            self.is_alive = False
+            self.x_position = self.scale * 32 * 3
             self.death_index = 0
+            self.current_health = self.max_health
+            #self.is_alive = True
 
         return self.death_sprites.frame_list[int(self.death_index)]
 
@@ -210,6 +212,9 @@ class Player:
             # Y-Axis collision handling
             if wall.is_collidable and wall.platform_rect.colliderect(self.y_collision_hitbox):
                 # Landing collision handling
+                if wall.tile.find("spike_down") != -1:
+                    self.current_health -= 100
+
                 if self.y_velocity > 0:
                     # Reset Jump related attributes
                     self.is_touching_ground = True
@@ -224,7 +229,6 @@ class Player:
                     self.y_position = wall.platform_rect.bottom
 
             projected_x = self.x_position + self.x_velocity
-            #self.x_collision_hitbox = pygame.Rect(projected_x + self.player_width_buffer, self.y_position + self.player_height//2, self.player_width - 2 * self.player_width_buffer, 1)
 
             if self.direction == 1:
                 self.x_collision_hitbox = pygame.Rect(projected_x + 2 * self.player_width_buffer,
@@ -235,7 +239,6 @@ class Player:
                                                       self.y_position,
                                                       self.player_width_buffer, self.player_height)
 
-
             # X-Axis collision handling
             if wall.is_collidable and wall.platform_rect.colliderect(self.x_collision_hitbox):
                 # Right sided collision handling
@@ -244,7 +247,6 @@ class Player:
                 # Left sided collision handling
                 elif self.x_velocity < 0:
                     self.x_position = wall.platform_rect.right - self.player_width_buffer
-
 
         self.x_ind = x_ind
         self.y_ind = y_ind
@@ -294,18 +296,4 @@ class Player:
         elif game_event.type == pygame.KEYDOWN and game_event.key == pygame.K_ESCAPE:
             self.current_health -= 100
 
-        elif game_event.type == pygame.KEYDOWN and game_event.key == pygame.K_TAB:
-            self.current_health = self.max_health
-            self.is_alive = True
 
-
-
-        elif game_event.type == pygame.KEYDOWN and game_event.key == pygame.K_q and not self.is_attacking:
-            self.is_attacking = True
-
-        elif game_event.type == pygame.KEYDOWN and game_event.key == pygame.K_ESCAPE:
-            self.current_health -= 100
-
-        elif game_event.type == pygame.KEYDOWN and game_event.key == pygame.K_TAB:
-            self.current_health = self.max_health
-            self.is_alive = True
