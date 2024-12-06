@@ -28,21 +28,16 @@ class Button:
         if self.x_position - self.width / 2 < mouse_x < self.x_position + self.width / 2:
             if self.y_position - self.height / 2 < mouse_y < self.y_position + self.height / 2:
                 self.display_hover_effect()
-                if pygame.mouse.get_pressed()[0]:
+                if pygame.mouse.get_just_pressed()[0]:
                     self.is_pressed = True
                     print("Pressed: ", self.text)
-                else:
-                    self.is_pressed = False
+        else:
+            self.is_pressed = False
 
     def display_hover_effect(self):
         button_rect = pygame.Rect(0, 0, self.width * 1.05, self.height * 1.05)
         button_rect.center = (self.x_position, self.y_position)
         pygame.draw.rect(self.screen, (255,255,255), button_rect, int(self.width * 0.05))
-
-
-
-    def display_hover(self):
-        pass
 
     def set_text(self, text):
         self.text = text
