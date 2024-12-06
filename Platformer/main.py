@@ -52,7 +52,7 @@ def display_tile_set(player, tile_foreground=False, tile_background=False):
     else:
         tile_set = player.tile_foreground
 
-    for layer in tile_set[max(player.y_ind-Y_WINDOW_PANNING_INDEX,0):player.y_ind+Y_WINDOW_PANNING_INDEX]:
+    for layer in tile_set[max(player.y_ind-Y_WINDOW_PANNING_INDEX,0):player.y_ind+Y_WINDOW_PANNING_INDEX+1]:
         if player.x_position + PANNING_SCREEN_WIDTH // 2 >= SCREEN_WIDTH - PANNING_SCREEN_WIDTH // 2:
             for tile in layer[x_clamp_index:]:
                 if tile.tile_number != "00":
@@ -93,6 +93,13 @@ def pan_window(player, player_screen):
     display_rect = pygame.Rect(x_start, player.y_position - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT // 2)
     player_screen.blit(player.play_surface, area=display_rect)
 
+def initialize_player(arrow_controls=True):
+    new_player = player.Player(scale=GAME_SCALE, arrow_controls=arrow_controls)
+    new_player_screen  = pygame.Surface((PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT))
+    new_player.play_surface = pygame.Surface((SCREEN_WIDTH , SCREEN_HEIGHT))
+    new_player.play_surface.convert()
+    return new_player, new_player_screen
+
 def main(game_scale=GAME_SCALE):
     running = True
     screen = pygame.display.set_mode((PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT))
@@ -100,21 +107,14 @@ def main(game_scale=GAME_SCALE):
     clock = pygame.time.Clock()
     font = pygame.font.SysFont("comicsans", 30)
 
-    #====================================== PLAYER ONE INITIALIZATION ==============================================#
-    player_one = player.Player(scale=game_scale, arrow_controls=False)
-    player_one_screen = pygame.Surface((screen.get_width(), screen.get_height()//2))
-    player_one.play_surface = pygame.Surface((SCREEN_WIDTH , SCREEN_HEIGHT))
+    #======================================= PLAYER INITIALIZATION ================================================
+    player_one, player_one_screen = initialize_player(arrow_controls=False)
+    player_two, player_two_screen = initialize_player(arrow_controls=True)
 
-    #====================================== PLAYER TWO INITIALIZATION ==============================================#
-    player_two = player.Player(scale=game_scale)
-    player_two_screen = pygame.Surface((screen.get_width(), screen.get_height()//2))
-    player_two.play_surface = pygame.Surface((SCREEN_WIDTH , SCREEN_HEIGHT))
-    player_two.x_position = SCREEN_WIDTH - (32 * GAME_SCALE * 5)
-    player_two.play_surface.convert()
-
-    #======================================== PLAYER ONE BACKGROUNDS ================================================
-    player_one.background_list = load_backgrounds()
-    player_two.background_list = load_backgrounds()
+    #=======================================PLAYER ONE BACKGROUNDS ================================================
+    background_list = load_backgrounds()
+    player_one.background_list = background_list
+    player_two.background_list = background_list
 
     #=============================== CONVERT IMAGES FOR ENGINE OPTIMIZATION ======================================
     player_one.play_surface.convert()
@@ -185,8 +185,6 @@ def main(game_scale=GAME_SCALE):
         display_tile_set(player_one, tile_foreground=True)
         display_tile_set(player_two, tile_foreground=True)
 
-
-
         # ====================== DISPLAY LEVEL OBJECTIVES ===============================
         player_one_test_objective.display_objective(player_one.play_surface)
         player_two_test_objective.display_objective(player_two.play_surface)
@@ -201,7 +199,7 @@ def main(game_scale=GAME_SCALE):
         level_objective.check_level_complete(player_one, player_two)
 
         # ============================= FPS CHECK ============================================
-        clock.tick(90)
+        clock.tick(60)
         fps_text = font.render(f"FPS: {clock.get_fps():.0f}", True, (255, 255, 255))
         fps_text_rect = fps_text.get_rect()
         screen.blit(fps_text, fps_text_rect)
