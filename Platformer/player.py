@@ -63,7 +63,7 @@ class Player:
         # Initialize player velocities
         self.x_velocity = 0
         self.y_velocity = 0
-        self.x_move_speed = 2.5 * self.scale
+        self.x_move_speed = 3.5 * self.scale
 
         # Initialize player accelerations
         self.x_acceleration = 0
@@ -184,6 +184,7 @@ class Player:
         self.is_touching_ground = False
         if self.jump_count < self.max_jumps:
             self.jump_count += 1
+            self.y_acceleration = 0
             self.y_velocity = -10
 
     def resolve_collision(self, wall_rects, screen):
@@ -261,12 +262,12 @@ class Player:
         keys = pygame.key.get_pressed()
 
         # Sprint left
-        if keys[pygame.K_SPACE] and keys[self.controls[0]]:
+        if keys[pygame.K_v] and keys[self.controls[0]]:
             self.x_velocity = -self.x_move_speed
             self.direction = -1
 
         # Sprint right
-        elif keys[pygame.K_SPACE] and keys[self.controls[1]]:
+        elif keys[pygame.K_v] and keys[self.controls[1]]:
             self.x_velocity = self.x_move_speed
             self.direction = 1
 
