@@ -1,10 +1,13 @@
 def gravity(sprite, gravity_value=0.5):
-    if not sprite.is_touching_ground:
-        sprite.y_acceleration = gravity_value
-    else:
+    if sprite.is_touching_ground:
         sprite.y_acceleration = 0
         sprite.y_velocity = 0
 
+    elif not sprite.is_touching_ground and sprite.y_velocity < 0:
+        sprite.y_acceleration = gravity_value
+
+    else:
+        sprite.y_acceleration = gravity_value * 3
 
 def update_physics(sprite):
     # Update the position based on velocity
