@@ -1,11 +1,9 @@
 import pygame
-
 import level_objective
 import player
 import physics
 import world_generator
 import level_files
-import test_file
 
 # TO DO LIST:
 #   -Create pause menu
@@ -23,15 +21,12 @@ Y_WINDOW_PANNING_INDEX = PANNING_SCREEN_HEIGHT // (32 * 4 * GAME_SCALE) + 1
 def initialize_pygame():
     pygame.init()
     pygame.display.set_caption("Platformer Development Testing")
-
-def event_checker(player_one, player_two):
-    events = pygame.event.get()
-    for event in events:
-        if event.type == pygame.QUIT:
-            return False
-        player_one.player_event_checker(event)
-        player_two.player_event_checker(event)
-    return True
+    
+def initialize_player(arrow_controls=True):
+    new_player = player.Player(scale=GAME_SCALE, arrow_controls=arrow_controls)
+    new_player_screen  = pygame.Surface((PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT))
+    new_player.play_surface = pygame.Surface((SCREEN_WIDTH , SCREEN_HEIGHT)).convert()
+    return new_player, new_player_screen
 
 def load_backgrounds():
     background_directory = "./game_assets/background_images/"
@@ -41,6 +36,19 @@ def load_backgrounds():
         image = pygame.transform.scale(image, (SCREEN_WIDTH ,SCREEN_HEIGHT // 2)).convert_alpha()
         background_images.append(image)
     return background_images
+
+def display_background(player):
+    for index, image in enumerate(player.background_list[::-1], 1):
+        if player.x_position <= PANNING_SCREEN_WIDTH // 2:
+            x_start = 0
+
+        elif player.x_position >= SCREEN_WIDTH - PANNING_SCREEN_WIDTH // 2:
+            x_start = SCREEN_WIDTH - PANNING_SCREEN_WIDTH
+
+        else:
+            x_start = player.x_position - PANNING_SCREEN_WIDTH // 2 +  player.x_velocity
+        display_rect = pygame.Rect(x_start * index * .1, player.y_position + 400 - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT // 2)
+        player.play_surface.blit(image, (x_start, player.y_position - PANNING_SCREEN_HEIGHT // 4), area=display_rect)
 
 def display_tile_set(player, tile_foreground=False, tile_background=False):
     x_clamp_index = PANNING_SCREEN_WIDTH // (32 * GAME_SCALE)
@@ -67,19 +75,15 @@ def display_tile_set(player, tile_foreground=False, tile_background=False):
             for tile in layer[max(player.x_ind - X_WINDOW_PANNING_INDEX, 0):min(player.x_ind + X_WINDOW_PANNING_INDEX,len(layer))]:
                 if tile.tile_number != "00":
                     tile.draw_platform(player.play_surface)
-
-def display_background(player):
-    for index, image in enumerate(player.background_list[::-1], 1):
-        if player.x_position <= PANNING_SCREEN_WIDTH // 2:
-            x_start = 0
-
-        elif player.x_position >= SCREEN_WIDTH - PANNING_SCREEN_WIDTH // 2:
-            x_start = SCREEN_WIDTH - PANNING_SCREEN_WIDTH
-
-        else:
-            x_start = player.x_position - PANNING_SCREEN_WIDTH // 2 +  player.x_velocity
-        display_rect = pygame.Rect(x_start * index * .2, player.y_position + 400 - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT // 2)
-        player.play_surface.blit(image, (x_start, player.y_position - PANNING_SCREEN_HEIGHT // 4), area=display_rect)
+        
+def event_checker(player_one, player_two):
+    events = pygame.event.get()
+    for event in events:
+        if event.type == pygame.QUIT:
+            return False
+        player_one.player_event_checker(event)
+        player_two.player_event_checker(event)
+    return True
 
 def pan_window(player, player_screen):
     if player.x_position <= PANNING_SCREEN_WIDTH // 2:
@@ -92,13 +96,6 @@ def pan_window(player, player_screen):
 
     display_rect = pygame.Rect(x_start, player.y_position - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT // 2)
     player_screen.blit(player.play_surface, area=display_rect)
-
-def initialize_player(arrow_controls=True):
-    new_player = player.Player(scale=GAME_SCALE, arrow_controls=arrow_controls)
-    new_player_screen  = pygame.Surface((PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT))
-    new_player.play_surface = pygame.Surface((SCREEN_WIDTH , SCREEN_HEIGHT))
-    new_player.play_surface.convert()
-    return new_player, new_player_screen
 
 def main(game_scale=GAME_SCALE):
     running = True
@@ -116,15 +113,11 @@ def main(game_scale=GAME_SCALE):
     player_one.background_list = background_list
     player_two.background_list = background_list
 
-    #=============================== CONVERT IMAGES FOR ENGINE OPTIMIZATION ======================================
-    player_one.play_surface.convert()
-    player_two.play_surface.convert()
-
     # ============================ TILE SET GENERATION ===========================
-    player_two_level_set = [level_files.player_two_tile_set, level_files.player_two_foreground_set, level_files.player_two_background_set]
+    player_two_level_set = level_files.player_two_level_set
     player_two.tile_set = world_generator.WorldGenerator(player_two_level_set[0][player_one.current_level], scale=game_scale).world_tiles
 
-    player_one_level_set = [level_files.player_one_tile_set, level_files.player_one_foreground_set, level_files.player_one_background_set]
+    player_one_level_set = level_files.player_one_level_set
     player_one.tile_set = world_generator.WorldGenerator(player_one_level_set[0][player_one.current_level], scale=game_scale).world_tiles
 
     # =========================== FOREGROUND GENERATION =================================
@@ -161,10 +154,6 @@ def main(game_scale=GAME_SCALE):
         pan_window(player_one, player_one_screen)
         pan_window(player_two, player_two_screen)
 
-        # ============================ DISPLAY RESET ====================================
-        player_one.play_surface.fill((0,0,0))
-        player_two.play_surface.fill((0,0,0))
-
         # ========================= DISPLAY BACKGROUND ==================================
         display_background(player_one)
         display_background(player_two)
@@ -199,7 +188,7 @@ def main(game_scale=GAME_SCALE):
         level_objective.check_level_complete(player_one, player_two)
 
         # ============================= FPS CHECK ============================================
-        clock.tick(60)
+        clock.tick()
         fps_text = font.render(f"FPS: {clock.get_fps():.0f}", True, (255, 255, 255))
         fps_text_rect = fps_text.get_rect()
         screen.blit(fps_text, fps_text_rect)
@@ -209,21 +198,3 @@ if __name__ == '__main__':
     initialize_pygame()
     main(GAME_SCALE)
 
-# ======================== TUTORIAL INSTRUCTIONS ===============================
-# arrow_key_intructions.display_text(player_one.play_surface)
-# wasd_intructions.display_text(player_two.play_surface)
-# player_one_jump_instructions.display_text(player_one.play_surface)
-# player_two_jump_instructions.display_text(player_two.play_surface)
-
-# # ======================================= CREATE INSTRUCTION TEXT =====================================================
-# arrow_key_intructions = game_text.BouncingText(PANNING_SCREEN_WIDTH//2 - 200, PANNING_SCREEN_HEIGHT + (GAME_SCALE * 32 * 7/4), "Use the Left and Right arrow keys to move")
-# wasd_intructions = game_text.BouncingText(PANNING_SCREEN_WIDTH * 5 - 250, PANNING_SCREEN_HEIGHT + (GAME_SCALE * 32 * 7/4), "Use the A and D to move left and right")
-# player_one_jump_instructions = game_text.BouncingText(PANNING_SCREEN_WIDTH//2 + 800, PANNING_SCREEN_HEIGHT + (GAME_SCALE * 32 * 7/4), " Use the Up arrow key to jump ")
-# player_two_jump_instructions = game_text.BouncingText(PANNING_SCREEN_WIDTH * 5 - 1200, PANNING_SCREEN_HEIGHT + (GAME_SCALE * 32 * 7/4), " Use the Up arrow key to jump ")
-
-# ======================= HIT BOX DEBUGGING =====================================
-# pygame.draw.rect(player_one.play_surface, "red", player_one.y_collision_hitbox, 1)
-# try:
-#     pygame.draw.rect(player_one.play_surface, "red", player_one.x_collision_hitbox, 1 )
-# except:
-#     pass
