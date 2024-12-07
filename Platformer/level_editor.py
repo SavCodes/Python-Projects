@@ -1,6 +1,5 @@
 import pygame
 import game_tile
-import test_file
 import world_generator
 import level_files
 import copy
@@ -27,14 +26,14 @@ def event_checker(level_editor):
         if event.type == pygame.QUIT:
             return False
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_UP and level_editor.current_level < len(
-                test_file.player_one_level_set[level_editor.mask_toggle]) - 1:
+                level_files.player_one_level_set[level_editor.mask_toggle]) - 1:
             level_editor.current_level += 1
             level_editor.level_array = world_generator.WorldGenerator(
-                test_file.player_one_level_set[level_editor.mask_toggle][level_editor.current_level]).world_tiles
+                level_files.player_one_level_set[level_editor.mask_toggle][level_editor.current_level]).world_tiles
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN and level_editor.current_level > 0:
             level_editor.current_level -= 1
             level_editor.level_array = world_generator.WorldGenerator(
-                test_file.player_one_level_set[level_editor.mask_toggle][level_editor.current_level]).world_tiles
+                level_files.player_one_level_set[level_editor.mask_toggle][level_editor.current_level]).world_tiles
 
         # Foreground toggling when clicking `F`
         if event.type == pygame.KEYDOWN and event.key == pygame.K_f:
@@ -49,6 +48,8 @@ def event_checker(level_editor):
             toggle_tilesets(level_editor, 0)
         if event.type == pygame.KEYDOWN and event.key == pygame.K_1:
             toggle_tilesets(level_editor, 1)
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_2:
+            toggle_tilesets(level_editor, 2)
 
     return True
 
@@ -66,6 +67,8 @@ def toggle_tilesets(editor, tile_set_number):
         editor.starting_cols, editor.starting_rows = 12, 8
     elif tile_set_number == 1:
         editor.starting_cols, editor.starting_rows = 7, 7
+    elif tile_set_number == 2:
+        editor.starting_cols, editor.starting_rows = 4, 1
     editor.tile_set_image = pygame.transform.scale(editor.tile_set_image, (32 * editor.starting_cols, 32 * editor.starting_rows))
     editor.tile_set_image_width, editor.tile_set_image_height = editor.tile_set_image.get_width(), editor.tile_set_image.get_height()
 
@@ -85,10 +88,10 @@ class LevelEditor:
         self.TOTAL_LEVEL_HEIGHT = 576 * 3
 
         # ======================== FILE PATH ==================================
-        self.current_tileset = 1
-        self.starting_rows = 7
-        self.starting_cols = 7
-        self.tile_set_directories = ["./game_assets/tile_files/", "./game_assets/mossy_test/"]
+        self.current_tileset = 2
+        self.starting_rows = 1
+        self.starting_cols = 4
+        self.tile_set_directories = ["./game_assets/tile_files/", "./game_assets/mossy_test/", "./game_assets/hazard_tiles/"]
         self.working_directory = self.tile_set_directories[self.current_tileset]              # CHANGE ME FOR DIFFERENT SETS
         self.tile_set_name = 'Tileset.png'                                                    # CHANGE ME FOR DIFFERENT SETS
         self.full_file_path = self.tile_set_directories[self.current_tileset] + self.tile_set_name
@@ -134,9 +137,9 @@ class LevelEditor:
         self.player_spawn_selected = False
 
         # ======================== CREATE BACKGROUND, FOREGROUND, AND PLAYER LEVEL =====================================
-        self.player_tile_array = world_generator.WorldGenerator(test_file.player_one_level_set[0][self.current_level]).world_tiles
-        self.foreground_array = world_generator.WorldGenerator(test_file.player_one_level_set[1][self.current_level]).world_tiles
-        self.background_array = world_generator.WorldGenerator(test_file.player_one_level_set[2][self.current_level]).world_tiles
+        self.player_tile_array = world_generator.WorldGenerator(level_files.player_one_level_set[0][self.current_level]).world_tiles
+        self.foreground_array = world_generator.WorldGenerator(level_files.player_one_level_set[1][self.current_level]).world_tiles
+        self.background_array = world_generator.WorldGenerator(level_files.player_one_level_set[2][self.current_level]).world_tiles
 
         # ========================================= NEEDS SORTING =====================================================
         self.editing_array = [self.player_tile_array, "Player Level Tiles"]
@@ -177,13 +180,13 @@ class LevelEditor:
     def set_player_spawn(self):
         pass
 
-    def isolate_images(self):
+    def isolate_images(self, x_offset=0, y_offset=0):
         total_rows = self.tile_set_image_height // self.tile_height
         total_columns = self.tile_set_image_width // self.tile_width
 
         for j in range(total_rows):
             for i in range(total_columns):
-                images = self.tile_set_image.subsurface(i*32, j*32, 32 ,32)
+                images = self.tile_set_image.subsurface(i*32+x_offset, min(j*32+y_offset, (total_rows-1)*32), 32 ,32)
                 tile_number = i + j * total_columns + 1
                 if len(str(tile_number)) < 2:
                     tile_number = f'0{tile_number}'
@@ -234,9 +237,13 @@ class LevelEditor:
         # Check if mouse is hovering button
         self.save_button.check_pressed(self.mouse_x, self.mouse_y)
         if self.save_button.is_pressed:
-            with open("test_file.py", "a") as file:
-                file.write(f"player_{self.selected_player}_{self.editing_array[1]}_{self.current_level} = ")
-                file.write(str(self.editing_array[0]) + "\n")
+            with open("new_levels.md", "a") as file:
+                file.write("###")
+                file.write(f"player_{self.selected_player}_{self.editing_array[1].split()[0]}_{self.current_level} = [ \n")
+                for row in self.editing_array[0]:
+                    file.write(f'{row},')
+                file.write("] \n")
+            self.save_button.is_pressed = False
 
     def check_reset_button(self):
         self.reset_button.check_pressed(self.mouse_x, self.mouse_y)
@@ -262,17 +269,15 @@ class LevelEditor:
             self.editing_array = [self.background_array, "Background Layer"]
             self.level_title_button.set_text(f"Editing: Player {self.selected_player} Level {self.current_level} \n Layer: {self.editing_array[1]}")
 
-
     def pan_camera(self):
         PANNING_SCREEN_WIDTH = 960
         PANNING_SCREEN_HEIGHT = 576
         panning_display_rect = pygame.Rect(self.camera_x_position,0, PANNING_SCREEN_WIDTH,PANNING_SCREEN_HEIGHT)
         self.screen.blit(self.grid_screen, (self.tile_set_image_width,0), area=panning_display_rect)
 
-
 def main():
     level_editor = LevelEditor()
-    #level_editor.isolate_images()
+    level_editor.isolate_images(0, 0)
     clock = pygame.Clock()
     frame_rate = 300
     running = True
