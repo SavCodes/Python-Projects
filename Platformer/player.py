@@ -16,25 +16,19 @@ class Player:
 
         # Idle animation requirements
         self.idle_sprites = spritesheet.SpriteSheet(self.character_image_directory + "Idle_4.png", scale=self.scale)
-        self.idle_index = 0
         self.is_attacking = False
-        self.idle_inhale = True
 
         # Death animation requirements
         self.death_sprites = spritesheet.SpriteSheet(self.character_image_directory+ "Death_8.png", scale=self.scale)
-        self.death_index = 0
-        self.is_alive = True
         self.max_health = 100
         self.current_health = self.max_health
 
         # Walking animation requirements
         self.walk_sprites = spritesheet.SpriteSheet(self.character_image_directory + "Walk_6.png", scale=self.scale)
-        self.walk_index = 0
 
         # Running animation requirements
         self.run_sprites = spritesheet.SpriteSheet(self.character_image_directory + "Run_6.png", scale=self.scale)
         self.sprint_speed = 3
-        self.run_index = 0
 
         # Walk to Run dust animation requirements
         self.run_dust_sprites = spritesheet.SpriteSheet(self.character_image_directory + "Run_Dust_6.png", scale=self.scale)
@@ -53,7 +47,6 @@ class Player:
 
         # Attack animation requirements
         self.attack_sprites = spritesheet.SpriteSheet(self.character_image_directory + "Attack1_4.png", scale=self.scale)
-        self.attack_index = 0
 
         # Initialize player dimensions
         self.player_height = 32 * self.scale
@@ -85,7 +78,6 @@ class Player:
     def respawn_player(self):
         if self.death_sprites.animation_index >= self.death_sprites.number_of_animations - 1:
             self.current_health = self.max_health
-            self.is_alive = True
             self.x_position = self.x_spawn
             self.x_velocity, self.y_velocity = 0, 0
             self.x_acceleration, self.y_acceleration = 0, 0
@@ -95,29 +87,29 @@ class Player:
         self.animate_run_dust(screen)
         self.animate_double_jump(screen)
 
-        # If the player died play the death animation:
+        # ===================================== DEATH ANIMATION =======================================================
         if self.current_health <= 0:
             frame_to_display = self.death_sprites.basic_animate()
             self.respawn_player()
 
-
-        # If attacking use attack animation
+        # ==================================== ATTACK ANIMATION =======================================================
         elif self.is_attacking:
-            frame_to_display = self.animate_attack()
+            frame_to_display = self.attack_sprites.basic_animate()
+            self.is_attacking = False if self.attack_sprites.animation_index >= self.attack_sprites.number_of_animations - 1 else True
 
-        # If Standing use idle sprites
+        # =====================================IDLE ANIMATION ========================================================
         elif self.x_velocity == 0 and self.is_touching_ground:
-            frame_to_display = self.animate_idle()
+            frame_to_display = self.idle_sprites.basic_animate(dampener=0.5)
 
-        # If Walking use walk sprites
+        # ==================================== WALK ANIMATION =======================================================
         elif self.y_velocity == 0 and self.is_touching_ground and abs(self.x_velocity) < self.sprint_speed:
             frame_to_display = self.walk_sprites.basic_animate()
 
-        # If Running use run sprites
+        # ===================================== RUN ANIMATION =======================================================
         elif self.y_velocity == 0 and self.is_touching_ground:
             frame_to_display = self.run_sprites.basic_animate()
 
-        # If Jumping use jump sprites
+        # ===================================== JUMP ANIMATION =======================================================
         else:
             frame_to_display = self.animate_jump()
 
@@ -125,20 +117,8 @@ class Player:
         if self.direction < 0:
             frame_to_display = pygame.transform.flip(frame_to_display, True, False)
 
-        if self.is_alive:
-            screen.blit(frame_to_display, self.player_rect)
-
+        screen.blit(frame_to_display, self.player_rect)
         self.image = frame_to_display
-
-    def animate_idle(self, dampener=0.5):
-        if self.x_velocity == 0 and self.idle_index < self.idle_sprites.number_of_animations - 1:
-            self.idle_index += self.animation_speed * dampener
-
-        else:
-            self.idle_inhale = True
-            self.idle_index = 0
-
-        return self.idle_sprites.frame_list[int(self.idle_index)]
 
     def animate_run_dust(self, screen):
         if abs(self.x_velocity) >= abs(self.sprint_speed):
@@ -147,7 +127,6 @@ class Player:
             if  self.run_dust_index < self.run_dust_sprites.number_of_animations - 1:
                 screen.blit(self.run_dust_sprites.frame_list[int(self.run_dust_index)], self.run_dust_surface)
                 self.run_dust_index += self.animation_speed
-
 
     def animate_jump(self):
         # Reset jump animation if player touches the ground
@@ -171,28 +150,6 @@ class Player:
             self.double_jump_index += self.animation_speed
         if self.jump_count == 0:
             self.double_jump_index = 0
-
-    # def animate_death(self):
-    #     if self.death_index < self.death_sprites.number_of_animations - 1:
-    #         self.death_index += self.animation_speed
-
-    #
-    #     elif self.current_health <= 0 and self.death_index > self.death_sprites.number_of_animations -1:
-    #         self.x_position = self.x_spawn
-    #         self.death_index = 0
-    #         self.current_health = self.max_health
-    #         #self.is_alive = True
-
-        return self.death_sprites.frame_list[int(self.death_index)]
-
-    def animate_attack(self):
-        if self.is_attacking and self.attack_index < self.attack_sprites.number_of_animations - 1:
-            self.attack_index += self.animation_speed
-        else:
-            self.is_attacking = False
-            self.attack_index = 0
-
-        return self.attack_sprites.frame_list[int(self.attack_index)]
 
     def jump_player(self):
         self.is_touching_ground = False
