@@ -25,32 +25,34 @@ def event_checker(level_editor):
     for event in events:
         if event.type == pygame.QUIT:
             return False
-        elif event.type == pygame.KEYDOWN and event.key == pygame.K_UP and level_editor.current_level < len(
-                level_files.player_one_level_set[level_editor.mask_toggle]) - 1:
-            level_editor.current_level += 1
-            level_editor.level_array = world_generator.WorldGenerator(
-                level_files.player_one_level_set[level_editor.mask_toggle][level_editor.current_level]).world_tiles
-        elif event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN and level_editor.current_level > 0:
-            level_editor.current_level -= 1
-            level_editor.level_array = world_generator.WorldGenerator(
-                level_files.player_one_level_set[level_editor.mask_toggle][level_editor.current_level]).world_tiles
-
-        # Foreground toggling when clicking `F`
+        # ============================= TOGGLE FOREGROUND ====================================
         if event.type == pygame.KEYDOWN and event.key == pygame.K_f:
             level_editor.showing_foreground = not level_editor.showing_foreground
-
-        # Background toggling when clicking `B`
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_b:
+        # ============================= TOGGLE BACKGROUND ====================================
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_b:
             level_editor.showing_background = not level_editor.showing_background
-
-        # Toggle tile sets with number keys
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_0:
+        # ============================ TOGGLE TILE SETS ======================================
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_0:
             toggle_tilesets(level_editor, 0)
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_1:
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_1:
             toggle_tilesets(level_editor, 1)
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_2:
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_2:
             toggle_tilesets(level_editor, 2)
-
+        # =========================== TOGGLE LEVELS ==========================================
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_UP and level_editor.current_level < len(level_files.player_one_level_set[0]) - 1:
+            level_editor.current_level += 1
+            level_editor.editing_array = [world_generator.WorldGenerator(level_files.player_one_level_set[0][level_editor.current_level]).world_tiles, "Level"]
+            level_editor.editing_array[0] += level_editor.blank_array[(len(level_editor.editing_array[0]) - 1):]
+            level_editor.foreground_array = world_generator.WorldGenerator(level_files.player_one_level_set[1][level_editor.current_level]).world_tiles
+            level_editor.background_array = world_generator.WorldGenerator(level_files.player_one_level_set[2][level_editor.current_level]).world_tiles
+            level_editor.level_title_button.set_text(f"Editing: Player {level_editor.selected_player} Level {level_editor.current_level} \n Layer: {level_editor.editing_array[1]}")
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN and level_editor.current_level > 0:
+            level_editor.current_level -= 1
+            level_editor.editing_array = [world_generator.WorldGenerator(level_files.player_one_level_set[0][level_editor.current_level]).world_tiles, "Level"]
+            level_editor.editing_array[0] += level_editor.blank_array[(len(level_editor.editing_array[0]) - 1):]
+            level_editor.foreground_array = world_generator.WorldGenerator(level_files.player_one_level_set[1][level_editor.current_level]).world_tiles
+            level_editor.background_array = world_generator.WorldGenerator(level_files.player_one_level_set[2][level_editor.current_level]).world_tiles
+            level_editor.level_title_button.set_text(f"Editing: Player {level_editor.selected_player} Level {level_editor.current_level} \n Layer: {level_editor.editing_array[1]}")
     return True
 
 def create_button(x_scale, y_scale, text, screen, tile_set_image_width, width=100, height=40):
@@ -88,9 +90,9 @@ class LevelEditor:
         self.TOTAL_LEVEL_HEIGHT = 576 * 3
 
         # ======================== FILE PATH ==================================
-        self.current_tileset = 2
-        self.starting_rows = 1
-        self.starting_cols = 4
+        self.current_tileset = 1
+        self.starting_rows = 7
+        self.starting_cols = 7
         self.tile_set_directories = ["./game_assets/tile_files/", "./game_assets/mossy_test/", "./game_assets/hazard_tiles/"]
         self.working_directory = self.tile_set_directories[self.current_tileset]              # CHANGE ME FOR DIFFERENT SETS
         self.tile_set_name = 'Tileset.png'                                                    # CHANGE ME FOR DIFFERENT SETS
@@ -116,7 +118,7 @@ class LevelEditor:
 
         # ==================== CREATE SETTING BUTTONS ===============================
         self.selected_player = "one"
-        self.current_level = 0
+        self.current_level = 2
 
         # Left sided buttons
         self.spawn_button = create_button(0.25, 0.50, "SET SPAWN", self.screen, self.tile_set_image_width)
@@ -143,7 +145,6 @@ class LevelEditor:
 
         # ========================================= NEEDS SORTING =====================================================
         self.editing_array = [self.player_tile_array, "Player Level Tiles"]
-        self.active_edit_layer = (self.editing_array[0], "Player Level Tiles")
         self.level_title_button.set_text(f"Editing: Player {self.selected_player} Level {self.current_level} \n Layer: {self.editing_array[1]}")
 
         self.level_blank = [[f"{self.working_directory}Tile_00.png" for i in range(self.level_x_length)] for j in range(self.level_y_length)]
@@ -258,14 +259,12 @@ class LevelEditor:
     def check_foreground_button(self):
         self.foreground_button.check_pressed(self.mouse_x, self.mouse_y)
         if self.foreground_button.is_pressed:
-            self.showing_foreground = not self.showing_foreground
             self.editing_array = [self.foreground_array, "Foreground Layer"]
             self.level_title_button.set_text(f"Editing: Player {self.selected_player} Level {self.current_level} \n Layer: {self.editing_array[1]}")
 
     def check_background_button(self):
         self.background_button.check_pressed(self.mouse_x, self.mouse_y)
         if self.background_button.is_pressed:
-            self.showing_background = not self.showing_background
             self.editing_array = [self.background_array, "Background Layer"]
             self.level_title_button.set_text(f"Editing: Player {self.selected_player} Level {self.current_level} \n Layer: {self.editing_array[1]}")
 
@@ -277,7 +276,7 @@ class LevelEditor:
 
 def main():
     level_editor = LevelEditor()
-    level_editor.isolate_images(0, 0)
+    #level_editor.isolate_images(0, 0)
     clock = pygame.Clock()
     frame_rate = 300
     running = True
