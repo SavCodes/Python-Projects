@@ -56,14 +56,16 @@ class Player:
         self.player_width_buffer = self.player_width // 4
 
         # Initialize player position
-        self.x_position = self.scale * 32 * 3
+        self.x_spawn = self.scale * 32 * 4
+        self.x_position = self.x_spawn
         self.y_position = 0
         self.player_rect = pygame.Rect(self.x_position, self.y_position, self.player_width, self.player_height)
 
         # Initialize player velocities
         self.x_velocity = 0
         self.y_velocity = 0
-        self.x_move_speed = 3.5 * self.scale
+        self.x_move_speed = 0.02 * self.scale
+        self.x_speed_cap = 3 * self.scale
 
         # Initialize player accelerations
         self.x_acceleration = 0
@@ -166,7 +168,7 @@ class Player:
             self.death_index += self.animation_speed
 
         elif self.current_health <= 0 and self.death_index > self.death_sprites.number_of_animations -1:
-            self.x_position = self.scale * 32 * 3
+            self.x_position = self.x_spawn
             self.death_index = 0
             self.current_health = self.max_health
             #self.is_alive = True
@@ -212,10 +214,10 @@ class Player:
             # Y-Axis collision handling
             if wall.is_collidable and wall.platform_rect.colliderect(self.y_collision_hitbox):
                 # Landing collision handling
-                if wall.tile.find("spike_down") != -1:
-                    self.current_health -= 100
-
                 if self.y_velocity > 0:
+                    if wall.tile.find("hazard") != -1:
+                        print("landed on hazard")
+                        self.current_health -= 100
                     # Reset Jump related attributes
                     self.is_touching_ground = True
                     self.jump_count = 0
@@ -225,15 +227,20 @@ class Player:
 
                 # Hitting head collision handling
                 elif self.y_velocity <= 0:
+                    if wall.tile.find("hazard") != -1:
+                        print("hit head on hazard")
+                        self.current_health -= 100
                     self.y_velocity = 0
                     self.y_position = wall.platform_rect.bottom
 
             projected_x = self.x_position + self.x_velocity
 
             if self.direction == 1:
+
                 self.x_collision_hitbox = pygame.Rect(projected_x + 2 * self.player_width_buffer,
                                                       self.y_position,
                                                       self.player_width_buffer, self.player_height)
+
             else:
                 self.x_collision_hitbox = pygame.Rect(projected_x + self.player_width_buffer,
                                                       self.y_position,
@@ -243,9 +250,15 @@ class Player:
             if wall.is_collidable and wall.platform_rect.colliderect(self.x_collision_hitbox):
                 # Right sided collision handling
                 if self.x_velocity > 0:
+                    if wall.tile.find("hazard") != -1:
+                        print("right collision on hazard")
+                        self.current_health -= 100
                     self.x_position = wall.platform_rect.left - self.player_width + self.player_width_buffer
                 # Left sided collision handling
                 elif self.x_velocity < 0:
+                    if wall.tile.find("hazard") != -1:
+                        print("left collision on hazard")
+                        self.current_health -= 100
                     self.x_position = wall.platform_rect.right - self.player_width_buffer
 
         self.x_ind = x_ind
@@ -261,30 +274,26 @@ class Player:
         self.resolve_collision(walls, screen)
 
     def get_player_movement(self):
-        keys = pygame.key.get_pressed()
-
-        # Sprint left
-        if keys[pygame.K_v] and keys[self.controls[0]]:
-            self.x_velocity = -self.x_move_speed
-            self.direction = -1
-
-        # Sprint right
-        elif keys[pygame.K_v] and keys[self.controls[1]]:
-            self.x_velocity = self.x_move_speed
+        if self.x_velocity > 0:
             self.direction = 1
-
-        # Walk left
-        elif keys[self.controls[0]]:
-            self.x_velocity = -self.x_move_speed / 5
+        elif self.x_velocity < 0:
             self.direction = -1
+
+        keys = pygame.key.get_pressed()
+        # Walk left
+        if keys[self.controls[0]] and self.x_velocity <= 0:
+            self.x_velocity += -self.x_move_speed
+            self.x_velocity = max(self.x_velocity, -self.x_speed_cap)
 
         # Walk right
-        elif keys[self.controls[1]]:
-            self.x_velocity = self.x_move_speed / 5
-            self.direction = 1
-
+        elif keys[self.controls[1]] and self.x_velocity >= 0:
+            self.x_velocity += self.x_move_speed
+            self.x_velocity = min(self.x_velocity, self.x_speed_cap)
         else:
             self.x_velocity = 0
+
+
+
 
     def player_event_checker(self, game_event):
         if game_event.type == pygame.KEYDOWN and game_event.key == self.controls[2]:
@@ -295,5 +304,4 @@ class Player:
 
         elif game_event.type == pygame.KEYDOWN and game_event.key == pygame.K_ESCAPE:
             self.current_health -= 100
-
 
