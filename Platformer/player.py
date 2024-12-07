@@ -166,6 +166,10 @@ class Player:
     def animate_death(self):
         if self.current_health <= 0 and self.death_index < self.death_sprites.number_of_animations - 1 and self.is_alive:
             self.death_index += self.animation_speed
+            self.x_velocity = 0
+            self.y_velocity = 0
+            self.x_acceleration = 0
+            self.y_acceleration = 0
 
         elif self.current_health <= 0 and self.death_index > self.death_sprites.number_of_animations -1:
             self.x_position = self.x_spawn
@@ -207,6 +211,8 @@ class Player:
 
         if y_ind + 1 < len(wall_rects) - 1 and not wall_rects[y_ind+1][x_ind].is_collidable:
             self.is_touching_ground = False
+        else:
+            print(wall_rects[y_ind+1][x_ind].tile)
 
         for wall in neighboring_walls:
             pygame.draw.rect(screen, "white", wall.platform_rect, 2)
@@ -215,7 +221,7 @@ class Player:
             if wall.is_collidable and wall.platform_rect.colliderect(self.y_collision_hitbox):
                 # Landing collision handling
                 if self.y_velocity > 0:
-                    if wall.tile.find("hazard") != -1:
+                    if wall.tile.find("down") != -1:
                         print("landed on hazard")
                         self.current_health -= 100
                     # Reset Jump related attributes
@@ -227,7 +233,7 @@ class Player:
 
                 # Hitting head collision handling
                 elif self.y_velocity <= 0:
-                    if wall.tile.find("hazard") != -1:
+                    if wall.tile.find("up") != -1:
                         print("hit head on hazard")
                         self.current_health -= 100
                     self.y_velocity = 0
@@ -250,13 +256,13 @@ class Player:
             if wall.is_collidable and wall.platform_rect.colliderect(self.x_collision_hitbox):
                 # Right sided collision handling
                 if self.x_velocity > 0:
-                    if wall.tile.find("hazard") != -1:
+                    if wall.tile.find("right") != -1:
                         print("right collision on hazard")
                         self.current_health -= 100
                     self.x_position = wall.platform_rect.left - self.player_width + self.player_width_buffer
                 # Left sided collision handling
                 elif self.x_velocity < 0:
-                    if wall.tile.find("hazard") != -1:
+                    if wall.tile.find("left") != -1:
                         print("left collision on hazard")
                         self.current_health -= 100
                     self.x_position = wall.platform_rect.right - self.player_width_buffer
@@ -282,18 +288,16 @@ class Player:
         keys = pygame.key.get_pressed()
         # Walk left
         if keys[self.controls[0]] and self.x_velocity <= 0:
-            self.x_velocity += -self.x_move_speed
+            self.x_acceleration = -self.x_move_speed
             self.x_velocity = max(self.x_velocity, -self.x_speed_cap)
 
         # Walk right
         elif keys[self.controls[1]] and self.x_velocity >= 0:
-            self.x_velocity += self.x_move_speed
+            self.x_acceleration = self.x_move_speed
             self.x_velocity = min(self.x_velocity, self.x_speed_cap)
         else:
+            self.x_acceleration = 0
             self.x_velocity = 0
-
-
-
 
     def player_event_checker(self, game_event):
         if game_event.type == pygame.KEYDOWN and game_event.key == self.controls[2]:
