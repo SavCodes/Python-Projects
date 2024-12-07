@@ -33,7 +33,12 @@ class Player:
 
         # Running animation requirements
         self.run_sprites = spritesheet.SpriteSheet(self.character_image_directory + "Run_6.png", scale=self.scale)
+        self.sprint_speed = 3
         self.run_index = 0
+
+        # Walk to Run dust animation requirements
+        self.run_dust_sprites = spritesheet.SpriteSheet(self.character_image_directory + "Run_Dust_6.png", scale=self.scale)
+        self.run_dust_index = 0
 
         # Jump animation requirements
         self.jump_sprites = spritesheet.SpriteSheet(self.character_image_directory + "Jump_8.png", scale=self.scale)
@@ -64,7 +69,7 @@ class Player:
         # Initialize player velocities
         self.x_velocity = 0
         self.y_velocity = 0
-        self.x_move_speed = 0.02 * self.scale
+        self.x_move_speed = 0.04 * self.scale
         self.x_speed_cap = 3 * self.scale
 
         # Initialize player accelerations
@@ -77,13 +82,24 @@ class Player:
         self.collision = False
         self.arrow_controls = arrow_controls
 
+    def respawn_player(self):
+        if self.death_sprites.animation_index >= self.death_sprites.number_of_animations - 1:
+            self.current_health = self.max_health
+            self.is_alive = True
+            self.x_position = self.x_spawn
+            self.x_velocity, self.y_velocity = 0, 0
+            self.x_acceleration, self.y_acceleration = 0, 0
+
     def display_player(self, screen):
         self.player_rect = pygame.Rect(self.x_position, self.y_position, self.player_width, self.player_height)
+        self.animate_run_dust(screen)
         self.animate_double_jump(screen)
 
         # If the player died play the death animation:
         if self.current_health <= 0:
-            frame_to_display = self.animate_death()
+            frame_to_display = self.death_sprites.basic_animate()
+            self.respawn_player()
+
 
         # If attacking use attack animation
         elif self.is_attacking:
@@ -94,12 +110,12 @@ class Player:
             frame_to_display = self.animate_idle()
 
         # If Walking use walk sprites
-        elif self.y_velocity == 0 and self.is_touching_ground and abs(self.x_velocity) < 3:
-            frame_to_display = self.animate_walk()
+        elif self.y_velocity == 0 and self.is_touching_ground and abs(self.x_velocity) < self.sprint_speed:
+            frame_to_display = self.walk_sprites.basic_animate()
 
         # If Running use run sprites
         elif self.y_velocity == 0 and self.is_touching_ground:
-            frame_to_display = self.animate_run()
+            frame_to_display = self.run_sprites.basic_animate()
 
         # If Jumping use jump sprites
         else:
@@ -124,21 +140,14 @@ class Player:
 
         return self.idle_sprites.frame_list[int(self.idle_index)]
 
-    def animate_walk(self):
-        if self.walk_index <= self.walk_sprites.number_of_animations - 1:
-            self.walk_index += self.animation_speed
-        else:
-            self.walk_index = 0
+    def animate_run_dust(self, screen):
+        if abs(self.x_velocity) >= abs(self.sprint_speed):
+            self.run_dust_surface = (self.x_position, self.y_position + self.player_height // 6, self.player_width, self.player_height)
+            print("i activated")
+            if  self.run_dust_index < self.run_dust_sprites.number_of_animations - 1:
+                screen.blit(self.run_dust_sprites.frame_list[int(self.run_dust_index)], self.run_dust_surface)
+                self.run_dust_index += self.animation_speed
 
-        return self.walk_sprites.frame_list[int(self.walk_index)]
-
-    def animate_run(self):
-        if self.run_index < self.run_sprites.number_of_animations - 1:
-            self.run_index += self.animation_speed
-        else:
-            self.run_index = 0
-
-        return self.run_sprites.frame_list[int(self.run_index)]
 
     def animate_jump(self):
         # Reset jump animation if player touches the ground
@@ -163,19 +172,16 @@ class Player:
         if self.jump_count == 0:
             self.double_jump_index = 0
 
-    def animate_death(self):
-        if self.current_health <= 0 and self.death_index < self.death_sprites.number_of_animations - 1 and self.is_alive:
-            self.death_index += self.animation_speed
-            self.x_velocity = 0
-            self.y_velocity = 0
-            self.x_acceleration = 0
-            self.y_acceleration = 0
+    # def animate_death(self):
+    #     if self.death_index < self.death_sprites.number_of_animations - 1:
+    #         self.death_index += self.animation_speed
 
-        elif self.current_health <= 0 and self.death_index > self.death_sprites.number_of_animations -1:
-            self.x_position = self.x_spawn
-            self.death_index = 0
-            self.current_health = self.max_health
-            #self.is_alive = True
+    #
+    #     elif self.current_health <= 0 and self.death_index > self.death_sprites.number_of_animations -1:
+    #         self.x_position = self.x_spawn
+    #         self.death_index = 0
+    #         self.current_health = self.max_health
+    #         #self.is_alive = True
 
         return self.death_sprites.frame_list[int(self.death_index)]
 
@@ -211,8 +217,6 @@ class Player:
 
         if y_ind + 1 < len(wall_rects) - 1 and not wall_rects[y_ind+1][x_ind].is_collidable:
             self.is_touching_ground = False
-        else:
-            print(wall_rects[y_ind+1][x_ind].tile)
 
         for wall in neighboring_walls:
             pygame.draw.rect(screen, "white", wall.platform_rect, 2)
@@ -298,6 +302,7 @@ class Player:
         else:
             self.x_acceleration = 0
             self.x_velocity = 0
+            self.run_dust_index = 0
 
     def player_event_checker(self, game_event):
         if game_event.type == pygame.KEYDOWN and game_event.key == self.controls[2]:
