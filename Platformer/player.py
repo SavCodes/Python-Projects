@@ -1,6 +1,7 @@
 import pygame
 import spritesheet
 
+
 class Player:
     def __init__(self,scale=1, arrow_controls=True):
         self.screen_width, self.screen_height = pygame.display.get_window_size()
@@ -55,15 +56,16 @@ class Player:
 
         # Initialize player position
         self.x_spawn = self.scale * 32 * 4
+        self.y_spawn = 0
         self.x_position = self.x_spawn
-        self.y_position = 0
+        self.y_position = self.y_spawn
         self.player_rect = pygame.Rect(self.x_position, self.y_position, self.player_width, self.player_height)
 
         # Initialize player velocities
         self.x_velocity = 0
         self.y_velocity = 0
         self.x_move_speed = 0.04 * self.scale
-        self.x_speed_cap = 3 * self.scale
+        self.x_speed_cap = 2.6 * self.scale
 
         # Initialize player accelerations
         self.x_acceleration = 0
@@ -78,8 +80,7 @@ class Player:
     def respawn_player(self):
         if self.death_sprites.animation_index >= self.death_sprites.number_of_animations - 1:
             self.current_health = self.max_health
-            self.x_position = self.x_spawn
-            self.x_velocity, self.y_velocity = 0, 0
+            self.x_position, self.y_position = self.x_spawn, self.y_spawn
             self.x_acceleration, self.y_acceleration = 0, 0
 
     def display_player(self, screen):
@@ -90,6 +91,7 @@ class Player:
         # ===================================== DEATH ANIMATION =======================================================
         if self.current_health <= 0:
             frame_to_display = self.death_sprites.basic_animate()
+            self.x_velocity, self.y_velocity = 0, 0
             self.respawn_player()
 
         # ==================================== ATTACK ANIMATION =======================================================
@@ -123,9 +125,11 @@ class Player:
     def animate_run_dust(self, screen):
         if abs(self.x_velocity) >= abs(self.sprint_speed):
             self.run_dust_surface = (self.x_position, self.y_position + self.player_height // 6, self.player_width, self.player_height)
-            print("i activated")
             if  self.run_dust_index < self.run_dust_sprites.number_of_animations - 1:
-                screen.blit(self.run_dust_sprites.frame_list[int(self.run_dust_index)], self.run_dust_surface)
+                image = self.run_dust_sprites.frame_list[int(self.run_dust_index)]
+                if self.direction < 0:
+                    image = pygame.transform.flip(image, True, False)
+                screen.blit(image, self.run_dust_surface)
                 self.run_dust_index += self.animation_speed
 
     def animate_jump(self):
@@ -156,7 +160,7 @@ class Player:
         if self.jump_count < self.max_jumps:
             self.jump_count += 1
             self.y_acceleration = 0
-            self.y_velocity = -10
+            self.y_velocity = -5 * self.scale
 
     def resolve_collision(self, wall_rects, screen):
         # Find the characters projected position for the next frame
@@ -172,8 +176,13 @@ class Player:
         # Find neighboring walls that are collidable
         neighboring_walls = [wall_rects[y_ind+y][x_ind+x] for x in range(-1, 2) for y in range(-1, 2) if wall_rects[y_ind+y][x_ind+x].is_collidable]
 
+        if wall_rects[y_ind + 1][x_ind].tile.find("spike") != -1:
+            self.current_health -= 100
+            return
+
         if y_ind + 1 < len(wall_rects) - 1 and not wall_rects[y_ind+1][x_ind].is_collidable:
             self.is_touching_ground = False
+
 
         for wall in neighboring_walls:
             pygame.draw.rect(screen, "white", wall.platform_rect, 2)
@@ -183,7 +192,6 @@ class Player:
                 # Landing collision handling
                 if self.y_velocity > 0:
                     if wall.tile.find("down") != -1:
-                        print("landed on hazard")
                         self.current_health -= 100
                     # Reset Jump related attributes
                     self.is_touching_ground = True
@@ -195,7 +203,6 @@ class Player:
                 # Hitting head collision handling
                 elif self.y_velocity <= 0:
                     if wall.tile.find("up") != -1:
-                        print("hit head on hazard")
                         self.current_health -= 100
                     self.y_velocity = 0
                     self.y_position = wall.platform_rect.bottom
@@ -218,13 +225,11 @@ class Player:
                 # Right sided collision handling
                 if self.x_velocity > 0:
                     if wall.tile.find("right") != -1:
-                        print("right collision on hazard")
                         self.current_health -= 100
                     self.x_position = wall.platform_rect.left - self.player_width + self.player_width_buffer
                 # Left sided collision handling
                 elif self.x_velocity < 0:
                     if wall.tile.find("left") != -1:
-                        print("left collision on hazard")
                         self.current_health -= 100
                     self.x_position = wall.platform_rect.right - self.player_width_buffer
 
@@ -256,10 +261,20 @@ class Player:
         elif keys[self.controls[1]] and self.x_velocity >= 0:
             self.x_acceleration = self.x_move_speed
             self.x_velocity = min(self.x_velocity, self.x_speed_cap)
+
         else:
-            self.x_acceleration = 0
-            self.x_velocity = 0
+            self.slide_on_stop()
             self.run_dust_index = 0
+
+    def slide_on_stop(self):
+        if abs(self.x_velocity) < 1:
+            self.x_velocity = 0
+            self.x_acceleration = 0
+        elif self.x_velocity > 0:
+            self.x_acceleration = -0.2
+        elif self.x_velocity < 0:
+            self.x_acceleration = 0.2
+
 
     def player_event_checker(self, game_event):
         if game_event.type == pygame.KEYDOWN and game_event.key == self.controls[2]:
