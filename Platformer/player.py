@@ -275,8 +275,10 @@ class Player:
         elif self.x_velocity < 0:
             self.x_acceleration = 0.2
 
-
     def player_event_checker(self, game_event):
+        if game_event.type == pygame.KEYDOWN and game_event.key == pygame.K_SPACE:
+            self.x_velocity = 10 * self.direction
+
         if game_event.type == pygame.KEYDOWN and game_event.key == self.controls[2]:
             self.jump_player()
 
@@ -285,4 +287,5 @@ class Player:
 
         elif game_event.type == pygame.KEYDOWN and game_event.key == pygame.K_ESCAPE:
             self.current_health -= 100
+
 
