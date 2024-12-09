@@ -4,10 +4,9 @@ import player
 import physics
 import world_generator
 import level_files
+import pause_menu
 
 #  MAIN FILE TO DO LIST:
-#   -Condense world generation for foreground, background and player level into a function
-#   -Create pause menu
 #   -Add collision detection for slanted blocks
 #   -Add wall slide/jump mechanic for player
 
@@ -87,13 +86,14 @@ def display_tile_set(player, tile_foreground=False, tile_background=False):
                 if tile.tile_number != "00":
                     tile.draw_platform(player.play_surface)
 
-def event_checker(player_one, player_two):
+def event_checker(player_one, player_two, pause_menu):
     events = pygame.event.get()
     for event in events:
         if event.type == pygame.QUIT:
             return False
         player_one.player_event_checker(event)
         player_two.player_event_checker(event)
+        pause_menu.event_checker(event)
     return True
 
 def pan_window(player, player_screen):
@@ -136,66 +136,80 @@ def main(game_scale=GAME_SCALE):
     player_one_test_objective = level_objective.LevelObjective(player_one, SCREEN_WIDTH - 200, 100)
     player_two_test_objective = level_objective.LevelObjective(player_two, 300,100)
 
+
+    # ============================   PAUSE MENU TESTING =================================
+    game_pause_menu = pause_menu.PauseMenu(screen)
+
+
     while running:
-        # ========================= CHECK FOR GAME INPUT ===============================
-        running = event_checker(player_one, player_two)
+        running = event_checker(player_one, player_two, game_pause_menu)
 
-        # ============================= PLAYER MOVEMENT ================================
-        player_one.get_player_movement()
-        player_two.get_player_movement()
-        player_one.move_player(player_one.tile_set, screen)
-        player_two.move_player(player_two.tile_set, screen)
+        if not game_pause_menu.is_paused:
 
-        # ================================ GRAVITY =====================================
-        physics.gravity(player_one)
-        physics.gravity(player_two)
+            # ========================= CHECK FOR GAME INPUT ===============================
 
-        # ============================== COLLISIONS ====================================
-        player_one.resolve_collision(player_one.tile_set, screen)
-        player_two.resolve_collision(player_two.tile_set, screen)
 
-        # ============================= WINDOW PANNING =================================
-        pan_window(player_one, player_one_screen)
-        pan_window(player_two, player_two_screen)
 
-        # ========================= DISPLAY BACKGROUND ==================================
-        display_background(player_one)
-        display_background(player_two)
+            # ============================= PLAYER MOVEMENT ================================
+            player_one.get_player_movement()
+            player_two.get_player_movement()
+            player_one.move_player(player_one.tile_set, screen)
+            player_two.move_player(player_two.tile_set, screen)
 
-        # ======================= DISPLAY BACKGROUND TILE SET ====================
-        display_tile_set(player_one, tile_background=True)
-        display_tile_set(player_two, tile_background=True)
+            # ================================ GRAVITY =====================================
+            physics.gravity(player_one)
+            physics.gravity(player_two)
 
-        # ======================= INDIVIDUAL PLAYER DISPLAY ============================
-        player_one.display_player(player_one.play_surface)
-        player_two.display_player(player_two.play_surface)
+            # ============================== COLLISIONS ====================================
+            player_one.resolve_collision(player_one.tile_set, screen)
+            player_two.resolve_collision(player_two.tile_set, screen)
 
-        # ========================= DISPLAY PLAYER LEVEL TILE SET =======================
-        display_tile_set(player_one)
-        display_tile_set(player_two)
+            # ============================= WINDOW PANNING =================================
+            pan_window(player_one, player_one_screen)
+            pan_window(player_two, player_two_screen)
 
-        # ========================= DISPLAY FOREGROUND TILE SET =========================
-        display_tile_set(player_one, tile_foreground=True)
-        display_tile_set(player_two, tile_foreground=True)
+            # ========================= DISPLAY BACKGROUND ==================================
+            display_background(player_one)
+            display_background(player_two)
 
-        # ====================== DISPLAY LEVEL OBJECTIVES ===============================
-        player_one_test_objective.display_objective(player_one.play_surface)
-        player_two_test_objective.display_objective(player_two.play_surface)
+            # ======================= DISPLAY BACKGROUND TILE SET ====================
+            display_tile_set(player_one, tile_background=True)
+            display_tile_set(player_two, tile_background=True)
 
-        # ======================== COMBINED PLAYER DISPLAY =============================
-        screen.blit(player_one_screen)
-        screen.blit(player_two_screen, (0, screen.get_height() // 2))
+            # ======================= INDIVIDUAL PLAYER DISPLAY ============================
+            player_one.display_player(player_one.play_surface)
+            player_two.display_player(player_two.play_surface)
 
-        # ========================= LEVEL OBJECTIVE LOGIC ==============================
-        player_one_test_objective.check_objective_collision()
-        player_two_test_objective.check_objective_collision()
-        level_objective.check_level_complete(player_one, player_two)
-        # ============================= FPS CHECK ============================================
-        clock.tick(60)
-        fps_text = font.render(f"FPS: {clock.get_fps():.0f}", True, (255, 255, 255))
-        fps_text_rect = fps_text.get_rect()
-        screen.blit(fps_text, fps_text_rect)
-        pygame.display.update()
+            # ========================= DISPLAY PLAYER LEVEL TILE SET =======================
+            display_tile_set(player_one)
+            display_tile_set(player_two)
+
+            # ========================= DISPLAY FOREGROUND TILE SET =========================
+            display_tile_set(player_one, tile_foreground=True)
+            display_tile_set(player_two, tile_foreground=True)
+
+            # ====================== DISPLAY LEVEL OBJECTIVES ===============================
+            player_one_test_objective.display_objective(player_one.play_surface)
+            player_two_test_objective.display_objective(player_two.play_surface)
+
+            # ======================== COMBINED PLAYER DISPLAY =============================
+            screen.blit(player_one_screen)
+            screen.blit(player_two_screen, (0, screen.get_height() // 2))
+
+            # ========================= LEVEL OBJECTIVE LOGIC ==============================
+            player_one_test_objective.check_objective_collision()
+            player_two_test_objective.check_objective_collision()
+            level_objective.check_level_complete(player_one, player_two)
+            # ============================= FPS CHECK ============================================
+            clock.tick(60)
+            fps_text = font.render(f"FPS: {clock.get_fps():.0f}", True, (255, 255, 255))
+            fps_text_rect = fps_text.get_rect()
+            screen.blit(fps_text, fps_text_rect)
+            pygame.display.update()
+
+        else:
+            game_pause_menu.run_pause_menu()
+
 
 if __name__ == '__main__':
     initialize_pygame()
