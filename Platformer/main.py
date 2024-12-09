@@ -5,10 +5,21 @@ import physics
 import world_generator
 import level_files
 
-# TO DO LIST:
+#  MAIN FILE TO DO LIST:
+#   -Condense world generation for foreground, background and player level into a function
 #   -Create pause menu
 #   -Add collision detection for slanted blocks
 #   -Add wall slide/jump mechanic for player
+
+#  LEVEL EDITOR TO DO LIST:
+# -Add mechanic to set player spawn
+# -Add mechanic to set level objective
+# -Add shift click add mechanic
+# -Add display for currently selected block
+# -Add mechanic to rotate currently selected block
+
+# PLAYER TO DO LIST:
+# - Add dash mechanic
 
 GAME_SCALE = 2
 PANNING_SCREEN_WIDTH = 960
@@ -21,11 +32,11 @@ Y_WINDOW_PANNING_INDEX = PANNING_SCREEN_HEIGHT // (32 * 4 * GAME_SCALE) + 1
 def initialize_pygame():
     pygame.init()
     pygame.display.set_caption("Platformer Development Testing")
-    
+
 def initialize_player(arrow_controls=True):
     new_player = player.Player(scale=GAME_SCALE, arrow_controls=arrow_controls)
     new_player_screen  = pygame.Surface((PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT))
-    new_player.play_surface = pygame.Surface((SCREEN_WIDTH , SCREEN_HEIGHT)).convert()
+    new_player.play_surface = pygame.Surface((SCREEN_WIDTH , SCREEN_HEIGHT)).convert_alpha()
     return new_player, new_player_screen
 
 def load_backgrounds():
@@ -75,7 +86,7 @@ def display_tile_set(player, tile_foreground=False, tile_background=False):
             for tile in layer[max(player.x_ind - X_WINDOW_PANNING_INDEX, 0):min(player.x_ind + X_WINDOW_PANNING_INDEX,len(layer))]:
                 if tile.tile_number != "00":
                     tile.draw_platform(player.play_surface)
-        
+
 def event_checker(player_one, player_two):
     events = pygame.event.get()
     for event in events:
@@ -107,6 +118,10 @@ def main(game_scale=GAME_SCALE):
     #======================================= PLAYER INITIALIZATION ================================================
     player_one, player_one_screen = initialize_player(arrow_controls=False)
     player_two, player_two_screen = initialize_player(arrow_controls=True)
+    player_two.current_level = 0
+    player_two.x_spawn = (len(level_files.player_two_level_set[0][player_two.current_level][0]) - 5) * 32 * GAME_SCALE
+    player_two.x_position = player_two.x_spawn
+    player_two.direction = -1
 
     #=======================================PLAYER ONE BACKGROUNDS ================================================
     background_list = load_backgrounds()
@@ -114,19 +129,8 @@ def main(game_scale=GAME_SCALE):
     player_two.background_list = background_list
 
     # ============================ TILE SET GENERATION ===========================
-    player_two_level_set = level_files.player_two_level_set
-    player_two.tile_set = world_generator.WorldGenerator(player_two_level_set[0][player_one.current_level], scale=game_scale).world_tiles
-
-    player_one_level_set = level_files.player_one_level_set
-    player_one.tile_set = world_generator.WorldGenerator(player_one_level_set[0][player_one.current_level], scale=game_scale).world_tiles
-
-    # =========================== FOREGROUND GENERATION =================================
-    player_one.tile_foreground = world_generator.WorldGenerator(player_one_level_set[1][player_one.current_level], scale=game_scale).world_tiles
-    player_two.tile_foreground = world_generator.WorldGenerator(player_two_level_set[1][player_one.current_level], scale=game_scale).world_tiles
-
-    # ========================== BACKGROUND GENERATION ==================================
-    player_one.tile_background = world_generator.WorldGenerator(player_one_level_set[2][player_one.current_level], scale=game_scale).world_tiles
-    player_two.tile_background = world_generator.WorldGenerator(player_two_level_set[2][player_one.current_level], scale=game_scale).world_tiles
+    player_one.tile_background, player_one.tile_set, player_one.tile_foreground = world_generator.generate_all_world_layers(level_files.player_one_level_set, scale=GAME_SCALE)
+    player_two.tile_background, player_two.tile_set, player_two.tile_foreground = world_generator.generate_all_world_layers(level_files.player_two_level_set, scale=GAME_SCALE)
 
     # ============================= CREATE LEVEL OBJECTIVES =============================
     player_one_test_objective = level_objective.LevelObjective(player_one, SCREEN_WIDTH - 200, 100)
@@ -186,9 +190,8 @@ def main(game_scale=GAME_SCALE):
         player_one_test_objective.check_objective_collision()
         player_two_test_objective.check_objective_collision()
         level_objective.check_level_complete(player_one, player_two)
-
         # ============================= FPS CHECK ============================================
-        clock.tick()
+        clock.tick(60)
         fps_text = font.render(f"FPS: {clock.get_fps():.0f}", True, (255, 255, 255))
         fps_text_rect = fps_text.get_rect()
         screen.blit(fps_text, fps_text_rect)
