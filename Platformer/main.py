@@ -1,5 +1,4 @@
 import pygame
-
 import particle
 import pause_menu, button
 import level_objective, level_files, level_editor
@@ -9,33 +8,20 @@ import spritesheet
 import world_generator
 from particle import render_particles
 import random
+from config import *
 
 #  MAIN FILE TO DO LIST:
 #   -Add darkness around character
 #   -Add collision detection for slanted blocks
 #   -Add wall slide/jump mechanic for player
-#   -Make tracking
-#   -Add grass animations
 
 #  LEVEL EDITOR TO DO LIST:
 # -Add mechanic to set player spawn
 # -Add mechanic to set level objective
 # -Add shift click add mechanic
 
-
 # PLAYER TO DO LIST:
 # - Dial in dash mechanic
-
-GAME_SCALE = 2
-TILE_SIZE = 32
-PANNING_SCREEN_WIDTH = 960
-PANNING_SCREEN_HEIGHT = 640
-SCREEN_WIDTH = PANNING_SCREEN_WIDTH * 5
-SCREEN_HEIGHT = PANNING_SCREEN_HEIGHT * 3
-X_WINDOW_PANNING_INDEX = PANNING_SCREEN_WIDTH // (TILE_SIZE * 2 * GAME_SCALE) + 1
-Y_WINDOW_PANNING_INDEX = PANNING_SCREEN_HEIGHT // (TILE_SIZE * 4 * GAME_SCALE) + 1
-PLAYER_OFFSET_Y = 400
-BACKGROUND_SCROLL_FACTOR = 0.1
 
 def initialize_pygame():
     pygame.init()
@@ -62,13 +48,13 @@ def display_background(player):
         display_rect = pygame.Rect(x_start * index * 0.1, player.position[1] + PLAYER_OFFSET_Y - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT // 2)
         player.play_surface.blit(image, (x_start, player.position[1] - PANNING_SCREEN_HEIGHT // 4), area=display_rect)
 
-def calculate_x_start(player_position, screen_width, panning_screen_width):
-    if player_position <= panning_screen_width // 2:
+def calculate_x_start(player_position, screen_width, PANNING_SCREEN_WIDTH):
+    if player_position <= PANNING_SCREEN_WIDTH // 2:
         return 0
-    elif player_position + panning_screen_width > screen_width:
-        return screen_width - panning_screen_width
+    elif player_position + PANNING_SCREEN_WIDTH > screen_width:
+        return screen_width - PANNING_SCREEN_WIDTH
     else:
-        return player_position - panning_screen_width // 2
+        return player_position - PANNING_SCREEN_WIDTH // 2
 
 def display_tile_set(player, tile_set):
     x_min = max(min(player.x_ind - X_WINDOW_PANNING_INDEX, 2 * X_WINDOW_PANNING_INDEX), 0)
