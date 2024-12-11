@@ -30,15 +30,15 @@ def load_backgrounds():
 
 def display_background(player):
     for index, image in enumerate(player.background_list[::-1], 1):
-        x_start = calculate_x_start(player.position[0], SCREEN_WIDTH, PANNING_SCREEN_WIDTH)
+        x_start = calculate_x_start(player.position[0])
         display_rect = pygame.Rect(x_start * index * 0.1, player.position[1] + PLAYER_OFFSET_Y - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT // 2)
         player.play_surface.blit(image, (x_start, player.position[1] - PANNING_SCREEN_HEIGHT // 4), area=display_rect)
 
-def calculate_x_start(player_position, screen_width, PANNING_SCREEN_WIDTH):
+def calculate_x_start(player_position):
     if player_position <= PANNING_SCREEN_WIDTH // 2:
         return 0
-    elif player_position + PANNING_SCREEN_WIDTH > screen_width:
-        return screen_width - PANNING_SCREEN_WIDTH
+    elif player_position + PANNING_SCREEN_WIDTH > SCREEN_WIDTH:
+        return SCREEN_WIDTH - PANNING_SCREEN_WIDTH
     else:
         return player_position - PANNING_SCREEN_WIDTH // 2
 
@@ -63,7 +63,7 @@ def event_checker(player_one, player_two, pause_menu):
     return True
 
 def pan_window(player, player_screen):
-    x_start = calculate_x_start(player.position[0], SCREEN_WIDTH, PANNING_SCREEN_WIDTH)
+    x_start = calculate_x_start(player.position[0])
     display_rect = pygame.Rect(x_start, player.position[1] - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT // 2)
     player_screen.blit(player.play_surface, area=display_rect)
 
