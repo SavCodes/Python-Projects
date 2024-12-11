@@ -1,32 +1,41 @@
 import pygame
-import level_objective
+
+import particle
+import pause_menu, button
+import level_objective, level_files, level_editor
 import player
 import physics
+import spritesheet
 import world_generator
-import level_files
-import pause_menu
+from particle import render_particles
+import random
 
 #  MAIN FILE TO DO LIST:
+#   -Add darkness around character
 #   -Add collision detection for slanted blocks
 #   -Add wall slide/jump mechanic for player
+#   -Make tracking
+#   -Add grass animations
 
 #  LEVEL EDITOR TO DO LIST:
 # -Add mechanic to set player spawn
 # -Add mechanic to set level objective
 # -Add shift click add mechanic
-# -Add display for currently selected block
-# -Add mechanic to rotate currently selected block
+
 
 # PLAYER TO DO LIST:
-# - Add dash mechanic
+# - Dial in dash mechanic
 
 GAME_SCALE = 2
+TILE_SIZE = 32
 PANNING_SCREEN_WIDTH = 960
 PANNING_SCREEN_HEIGHT = 640
 SCREEN_WIDTH = PANNING_SCREEN_WIDTH * 5
 SCREEN_HEIGHT = PANNING_SCREEN_HEIGHT * 3
-X_WINDOW_PANNING_INDEX = PANNING_SCREEN_WIDTH // (32 * 2 * GAME_SCALE) + 1
-Y_WINDOW_PANNING_INDEX = PANNING_SCREEN_HEIGHT // (32 * 4 * GAME_SCALE) + 1
+X_WINDOW_PANNING_INDEX = PANNING_SCREEN_WIDTH // (TILE_SIZE * 2 * GAME_SCALE) + 1
+Y_WINDOW_PANNING_INDEX = PANNING_SCREEN_HEIGHT // (TILE_SIZE * 4 * GAME_SCALE) + 1
+PLAYER_OFFSET_Y = 400
+BACKGROUND_SCROLL_FACTOR = 0.1
 
 def initialize_pygame():
     pygame.init()
@@ -49,42 +58,27 @@ def load_backgrounds():
 
 def display_background(player):
     for index, image in enumerate(player.background_list[::-1], 1):
-        if player.x_position <= PANNING_SCREEN_WIDTH // 2:
-            x_start = 0
+        x_start = calculate_x_start(player.position[0], SCREEN_WIDTH, PANNING_SCREEN_WIDTH)
+        display_rect = pygame.Rect(x_start * index * 0.1, player.position[1] + PLAYER_OFFSET_Y - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT // 2)
+        player.play_surface.blit(image, (x_start, player.position[1] - PANNING_SCREEN_HEIGHT // 4), area=display_rect)
 
-        elif player.x_position >= SCREEN_WIDTH - PANNING_SCREEN_WIDTH // 2:
-            x_start = SCREEN_WIDTH - PANNING_SCREEN_WIDTH
-
-        else:
-            x_start = player.x_position - PANNING_SCREEN_WIDTH // 2 +  player.x_velocity
-        display_rect = pygame.Rect(x_start * index * .1, player.y_position + 400 - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT // 2)
-        player.play_surface.blit(image, (x_start, player.y_position - PANNING_SCREEN_HEIGHT // 4), area=display_rect)
-
-def display_tile_set(player, tile_foreground=False, tile_background=False):
-    x_clamp_index = PANNING_SCREEN_WIDTH // (32 * GAME_SCALE)
-    y_clamp_index = PANNING_SCREEN_HEIGHT // (32 * GAME_SCALE)
-    if not tile_foreground and not tile_background:
-        tile_set = player.tile_set
-    elif tile_background:
-        tile_set = player.tile_background
+def calculate_x_start(player_position, screen_width, panning_screen_width):
+    if player_position <= panning_screen_width // 2:
+        return 0
+    elif player_position + panning_screen_width > screen_width:
+        return screen_width - panning_screen_width
     else:
-        tile_set = player.tile_foreground
+        return player_position - panning_screen_width // 2
 
-    for layer in tile_set[max(player.y_ind-Y_WINDOW_PANNING_INDEX,0):player.y_ind+Y_WINDOW_PANNING_INDEX+1]:
-        if player.x_position + PANNING_SCREEN_WIDTH // 2 >= SCREEN_WIDTH - PANNING_SCREEN_WIDTH // 2:
-            for tile in layer[x_clamp_index:]:
-                if tile.tile_number != "00":
-                    tile.draw_platform(player.play_surface)
-
-        elif player.x_position - PANNING_SCREEN_WIDTH // 2 <= 0 :
-            for tile in layer[:x_clamp_index]:
-                if tile.tile_number != "00":
-                    tile.draw_platform(player.play_surface)
-
-        else:
-            for tile in layer[max(player.x_ind - X_WINDOW_PANNING_INDEX, 0):min(player.x_ind + X_WINDOW_PANNING_INDEX,len(layer))]:
-                if tile.tile_number != "00":
-                    tile.draw_platform(player.play_surface)
+def display_tile_set(player, tile_set):
+    x_min = max(min(player.x_ind - X_WINDOW_PANNING_INDEX, 2 * X_WINDOW_PANNING_INDEX), 0)
+    x_max = min(player.x_ind + X_WINDOW_PANNING_INDEX + 1, len(tile_set[0]))
+    y_min = max(player.y_ind - Y_WINDOW_PANNING_INDEX, 0)
+    y_max = min(player.y_ind + Y_WINDOW_PANNING_INDEX + 1, len(tile_set))
+    for row in tile_set[y_min:y_max]:
+        for tile in row[x_min:x_max]:
+            if tile.tile_number != "00":  # Non-empty tile
+                tile.draw_platform(player.play_surface)
 
 def event_checker(player_one, player_two, pause_menu):
     events = pygame.event.get()
@@ -97,30 +91,36 @@ def event_checker(player_one, player_two, pause_menu):
     return True
 
 def pan_window(player, player_screen):
-    if player.x_position <= PANNING_SCREEN_WIDTH // 2:
-        x_start = 0
-
-    elif player.x_position + PANNING_SCREEN_WIDTH // 2 > SCREEN_WIDTH:
-        x_start = SCREEN_WIDTH - PANNING_SCREEN_WIDTH
-    else :
-        x_start = player.x_position - PANNING_SCREEN_WIDTH/2
-
-    display_rect = pygame.Rect(x_start, player.y_position - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT // 2)
+    x_start = calculate_x_start(player.position[0], SCREEN_WIDTH, PANNING_SCREEN_WIDTH)
+    display_rect = pygame.Rect(x_start, player.position[1] - PANNING_SCREEN_HEIGHT // 4, PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT // 2)
     player_screen.blit(player.play_surface, area=display_rect)
 
-def main(game_scale=GAME_SCALE):
+def run_level_editor(level_editor_button):
+    level_editor_button.display_button()
+    level_editor_button.check_pressed(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1])
+    if level_editor_button.is_pressed:
+        level_editor.main(PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT)
+
+def main():
     running = True
     screen = pygame.display.set_mode((PANNING_SCREEN_WIDTH, PANNING_SCREEN_HEIGHT))
     screen.set_alpha(None)
     clock = pygame.time.Clock()
     font = pygame.font.SysFont("comicsans", 30)
 
+    # ===================================== ANIMATED TILE MANAGEMENT ================================================
+    # Initialize the AnimatedTileManager
+    grass_sway_sheet = spritesheet.SpriteSheet("./game_assets/animated_tiles/grass_spritesheet_41.png", scale=2.0, width=32, height=64)
+    tile_manager = spritesheet.AnimatedTileManager()
+    for i in range(10):
+        tile_manager.add_tile(grass_sway_sheet, (150 + random.randint(30,40)*i,random.randint(350,365)))  # Add at position (200, 150)
+
     #======================================= PLAYER INITIALIZATION ================================================
     player_one, player_one_screen = initialize_player(arrow_controls=False)
     player_two, player_two_screen = initialize_player(arrow_controls=True)
     player_two.current_level = 0
-    player_two.x_spawn = (len(level_files.player_two_level_set[0][player_two.current_level][0]) - 5) * 32 * GAME_SCALE
-    player_two.x_position = player_two.x_spawn
+    player_two.x_spawn, player_two.y_spawn = pygame.math.Vector2(level_files.player_two_spawnpoints[player_two.current_level])  * GAME_SCALE * TILE_SIZE
+    player_two.position[0] = player_two.x_spawn
     player_two.direction = -1
 
     #=======================================PLAYER ONE BACKGROUNDS ================================================
@@ -136,19 +136,19 @@ def main(game_scale=GAME_SCALE):
     player_one_test_objective = level_objective.LevelObjective(player_one, SCREEN_WIDTH - 200, 100)
     player_two_test_objective = level_objective.LevelObjective(player_two, 300,100)
 
-
     # ============================   PAUSE MENU TESTING =================================
     game_pause_menu = pause_menu.PauseMenu(screen)
+    level_editor_button = button.Button(screen, screen.width//2, 40, text="Level Editor" )
 
+    drift_particles = particle.create_particles()
 
     while running:
-        running = event_checker(player_one, player_two, game_pause_menu)
 
+        # ========================= CHECK FOR GAME INPUT ===============================
+        running = event_checker(player_one, player_two, game_pause_menu)
         if not game_pause_menu.is_paused:
 
-            # ========================= CHECK FOR GAME INPUT ===============================
-
-
+            render_particles(player_one.play_surface, drift_particles, player_one)
 
             # ============================= PLAYER MOVEMENT ================================
             player_one.get_player_movement()
@@ -173,26 +173,28 @@ def main(game_scale=GAME_SCALE):
             display_background(player_two)
 
             # ======================= DISPLAY BACKGROUND TILE SET ====================
-            display_tile_set(player_one, tile_background=True)
-            display_tile_set(player_two, tile_background=True)
+            display_tile_set(player_one, player_one.tile_background)
+            display_tile_set(player_two, player_two.tile_background)
 
             # ======================= INDIVIDUAL PLAYER DISPLAY ============================
             player_one.display_player(player_one.play_surface)
             player_two.display_player(player_two.play_surface)
 
             # ========================= DISPLAY PLAYER LEVEL TILE SET =======================
-            display_tile_set(player_one)
-            display_tile_set(player_two)
+            display_tile_set(player_one, player_one.tile_set)
+            display_tile_set(player_two, player_two.tile_set)
 
             # ========================= DISPLAY FOREGROUND TILE SET =========================
-            display_tile_set(player_one, tile_foreground=True)
-            display_tile_set(player_two, tile_foreground=True)
+            display_tile_set(player_one, player_one.tile_foreground)
+            display_tile_set(player_two, player_two.tile_foreground)
 
             # ====================== DISPLAY LEVEL OBJECTIVES ===============================
             player_one_test_objective.display_objective(player_one.play_surface)
             player_two_test_objective.display_objective(player_two.play_surface)
 
             # ======================== COMBINED PLAYER DISPLAY =============================
+            tile_manager.draw_tiles(player_one.play_surface)
+
             screen.blit(player_one_screen)
             screen.blit(player_two_screen, (0, screen.get_height() // 2))
 
@@ -200,18 +202,22 @@ def main(game_scale=GAME_SCALE):
             player_one_test_objective.check_objective_collision()
             player_two_test_objective.check_objective_collision()
             level_objective.check_level_complete(player_one, player_two)
+
             # ============================= FPS CHECK ============================================
             clock.tick(60)
             fps_text = font.render(f"FPS: {clock.get_fps():.0f}", True, (255, 255, 255))
             fps_text_rect = fps_text.get_rect()
             screen.blit(fps_text, fps_text_rect)
-            pygame.display.update()
 
         else:
+            screen.fill((255,255,255))
             game_pause_menu.run_pause_menu()
+            run_level_editor(level_editor_button)
 
+        pygame.display.update()
 
 if __name__ == '__main__':
     initialize_pygame()
-    main(GAME_SCALE)
+    main()
+
 
