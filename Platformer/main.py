@@ -1,27 +1,13 @@
 import pygame
 import particle
+import random
 import pause_menu, button
 import level_objective, level_files, level_editor
 import player
 import physics
 import spritesheet
 import world_generator
-from particle import render_particles
-import random
 from config import *
-
-#  MAIN FILE TO DO LIST:
-#   -Add darkness around character
-#   -Add collision detection for slanted blocks
-#   -Add wall slide/jump mechanic for player
-
-#  LEVEL EDITOR TO DO LIST:
-# -Add mechanic to set player spawn
-# -Add mechanic to set level objective
-# -Add shift click add mechanic
-
-# PLAYER TO DO LIST:
-# - Dial in dash mechanic
 
 def initialize_pygame():
     pygame.init()
@@ -134,7 +120,7 @@ def main():
         running = event_checker(player_one, player_two, game_pause_menu)
         if not game_pause_menu.is_paused:
 
-            render_particles(player_one.play_surface, drift_particles, player_one)
+            particle.render_particles(player_one.play_surface, drift_particles, player_one)
 
             # ============================= PLAYER MOVEMENT ================================
             player_one.get_player_movement()
